@@ -44,10 +44,14 @@ export const loginUser = (req, res) => {
 
   if (user && bcrypt.compare(password, user.password_hash)) {
     //generate jwt
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h", // valid for an hour
-    });
-    res.json({ id: user.id, username: user.username, token });
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h", // valid for an hour
+      }
+    );
+    res.json({ id: user.id, username: user.username, token, role: user.role });
   } else {
     res.status(401).json({ message: "Invalid credentials" });
   }
