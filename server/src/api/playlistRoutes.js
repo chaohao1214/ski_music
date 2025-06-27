@@ -1,11 +1,14 @@
 import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
+import {
+  addSongsToPlaylist,
+  getPlaylistState,
+} from "../controllers/playlistController.js";
 
 const router = express.Router();
 
-router.get("/", protect, (req, res) => {
-  console.log("Authenticated user:", req.user);
-  res.json({ message: "Welcome to the protected playlist!", user: req.user });
-});
+router.get("/", protect, getPlaylistState);
+
+router.post("/add", protect, addSongsToPlaylist);
 
 export default router;

@@ -6,6 +6,7 @@ import cors from "cors";
 import { initDb } from "./src/services/databaseService.js";
 import authRoutes from "./src/api/authRoutes.js";
 import playlistRoutes from "./src/api/playlistRoutes.js";
+import songRoutes from "./src/api/songsRoutes.js";
 
 //initialize database
 initDb();
@@ -18,6 +19,7 @@ app.use(express.json());
 
 app.use("/api/playlist", playlistRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/songs", songRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

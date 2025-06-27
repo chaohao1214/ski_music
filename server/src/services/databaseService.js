@@ -1,5 +1,5 @@
 import Database from "better-sqlite3";
-
+import bcrypt from "bcryptjs";
 const db = new Database("skating_rink.db", { verbose: console.log });
 
 function ensureAdminExists() {
@@ -9,7 +9,7 @@ function ensureAdminExists() {
   const admin = stmt.get("admin", "admin");
   if (!admin) {
     // Lazy-load bcrypt only when it's actually needed for the setup
-    const bcrypt = require("bcryptjs");
+
     console.log("Admin user not found, creating one...");
     const salt = bcrypt.genSaltSync(10);
     const password_hash = bcrypt.hashSync("admin123", salt);
@@ -34,6 +34,13 @@ export function initDb() {
       role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('user', 'admin'))
     );
     
+    CREATE TABLE IF NOT EXISTS playlist_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  song_id INTEGER NOT NULL, -- This will be a foreign key to the 'songs' table
+  position INTEGER NOT NULL, -- To maintain the order of songs
+  FOREIGN KEY (song_id) REFERENCES songs (id)
+);
+
     -- NEW: Create the master songs library table
     CREATE TABLE IF NOT EXISTS songs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -6,10 +6,8 @@ import db from "../services/databaseService.js";
 // @route   POST /api/auth/register
 
 export const registerUser = (req, res) => {
-  // --- DEBUG ---
-  console.log("1. Received request for /api/auth/register");
   const { username, password } = req.body;
-  console.log("2. Request body:", req.body);
+
   if (!username || !password) {
     return res
       .status(400)
