@@ -54,3 +54,16 @@ export const loginUser = (req, res) => {
     res.status(401).json({ message: "Invalid credentials" });
   }
 };
+
+// @desc    Get current logged in user's data
+// @route   GET /api/auth/me
+// @access  Protected
+
+export const getMe = (req, res) => {
+  const user = db.prepare("SELECT id, username, role FROM users WHERE id = ?");
+  if (user) {
+    res.json(user);
+  } else {
+    res.status(404).json({ message: "User not found" });
+  }
+};
