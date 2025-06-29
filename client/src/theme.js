@@ -1,50 +1,72 @@
 import { createTheme } from "@mui/material/styles";
 
-// Create a theme instance.
-const theme = createTheme({
+const darkTheme = createTheme({
   palette: {
-    // Defines the color palette
+    // Set the theme mode to 'dark'
+    mode: "dark",
+
+    // Define the primary color (for buttons, highlights, etc.)
     primary: {
-      main: "#1976d2", // A standard blue color, you can change this
+      main: "#94e0b2", // The bright mint green from your design
     },
-    secondary: {
-      main: "#dc004e", // A standard pink color
-    },
+
+    // Define background colors
     background: {
-      default: "#f4f6f8", // A light grey background for the whole app
-      paper: "#ffffff", // The background for components like Card, Paper
+      default: "#141f18", // The very dark green/black main background
+      paper: "#141f18", // Background for components like Card, Paper
+    },
+
+    // Define text colors
+    text: {
+      primary: "#ffffff", // Main text color (e.g., "Music App" title)
+      secondary: "#9bbfaa", // Secondary text color (for links)
     },
   },
+
   typography: {
-    // Defines font styles
-    fontFamily: [
-      "-apple-system",
-      "BlinkMacSystemFont",
-      '"Segoe UI"',
-      "Roboto",
-      '"Helvetica Neue"',
-      "Arial",
-      "sans-serif",
-    ].join(","),
-    h5: {
-      fontWeight: 700, // Make h5 (like our 'Sign In' title) bolder
+    fontFamily: '"Spline Sans", "Noto Sans", sans-serif',
+    button: {
+      textTransform: "none", // Prevent buttons from being all uppercase
+      fontWeight: "bold",
     },
   },
-  shape: {
-    // Defines border radius for components
-    borderRadius: 8,
-  },
-  // You can also override component-specific styles here
+
+  // Override default styles for specific components
   components: {
+    // Style for all buttons
     MuiButton: {
       styleOverrides: {
         root: {
-          textTransform: "none", // Buttons will not be all uppercase
-          boxShadow: "none",
+          borderRadius: "9999px", // Creates a fully rounded "pill" shape
+          color: "#141f18", // Set button text color to the dark background color
+        },
+      },
+    },
+    // Style for all text fields
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          // Target the input element itself
+          "& .MuiInputBase-root": {
+            backgroundColor: "#2a4133", // The dark green background for text fields
+            borderRadius: "12px", // 'rounded-xl' is approximately 12px
+          },
+          // Remove the default border (fieldset)
+          "& .MuiOutlinedInput-notchedOutline": {
+            border: "none",
+          },
+          // Ensure border is still none on hover
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            border: "none",
+          },
+          // Ensure border is still none when focused
+          "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
+            border: "none",
+          },
         },
       },
     },
   },
 });
 
-export default theme;
+export default darkTheme;

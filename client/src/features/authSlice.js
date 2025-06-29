@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { apiPost, setAuthToken } from "../utils/apiClient";
+import { apiPost, apiGet, setAuthToken } from "../utils/apiClient";
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
 
@@ -11,6 +11,18 @@ export const loginUser = createAsyncThunk(
       return data;
     } catch (error) {
       return rejectWithValue(error.message || "Login failed");
+    }
+  }
+);
+
+export const getMe = createAsyncThunk(
+  "auth/getMe",
+  async (__dirname, { rejectWithValue }) => {
+    try {
+      const data = await apiGet("/api/auth/me");
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || "Session expired");
     }
   }
 );
@@ -59,6 +71,19 @@ const authSlice = createSlice({
         state.status = "failed";
         state.error = action.payload;
         localStorage.removeItem("token");
+      })
+      .addCase(getMe.fulfilled, (state, action) => {
+        state.isAuthenticated = true;
+        state.user = action.payload;
+        state.status == "succeeded";
+      })
+      .addCase(getMe.rejected, (state, action) => {
+        state.status = "failed";
+        state.isAuthenticated = false;
+        state.user = null;
+        state.token = null;
+        localStorage.removeItem("token");
+        setAuthToken(null);
       });
   },
 });
