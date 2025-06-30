@@ -1,6 +1,6 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../features/authSlice";
+import { logout } from "../features/auth/authSlice";
 import { Container, Typography } from "@mui/material";
 
 const DashboardPage = () => {

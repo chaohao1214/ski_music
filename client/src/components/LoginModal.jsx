@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { loginUser, clearError } from "../features/auth/authSlice";
-
-// MUI Components
+import { loginUser, closeLoginModal } from "../features/auth/authSlice";
+import imageIcon from "../assets/undraw_happy-music_na4p.svg";
 import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
   Button,
   TextField,
   Typography,
@@ -12,59 +14,61 @@ import {
   CircularProgress,
   Alert,
   Link,
-  AppBar,
-  Toolbar,
-  Container,
 } from "@mui/material";
-import imageIcon from "../assets/undraw_happy-music_na4p.svg";
+import CloseIcon from "@mui/icons-material/Close";
 
-const LoginPage = () => {
+const LoginModal = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { status, error, isAuthenticated } = useSelector((state) => state.auth);
 
-  useEffect(() => {
-    if (isAuthenticated) navigate("/");
-    return () => {
-      dispatch(clearError());
-    };
-  }, [isAuthenticated, navigate, dispatch]);
+  const { isLoginModalOpen, status, error } = useSelector(
+    (state) => state.auth
+  );
+
+  const handleClose = () => {
+    dispatch(closeLoginModal());
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (username && password) {
       dispatch(loginUser({ username, password }))
         .unwrap()
-        .then(() => navigate("/"))
         .catch((err) => console.error("Failed to login:", err));
     }
   };
-
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100vh",
-        bgcolor: "background.default",
+    <Dialog
+      open={isLoginModalOpen}
+      onClose={handleClose}
+      slotProps={{
+        sx: {
+          bgcolor: "background.default",
+          width: "100%",
+          maxWidth: "420px",
+          borderRadius: 4,
+        },
       }}
     >
-      <AppBar position="static" color="transparent" elevation={0}>
-        <Toolbar>
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ flexGrow: 1, textAlign: "center", fontWeight: "bold" }}
-          >
-            Music App
-          </Typography>
-        </Toolbar>
-      </AppBar>
-
-      {/* --- Main Content --- */}
-      <Container component="main" maxWidth="xs" sx={{ mt: 4 }}>
+      <DialogTitle sx={{ textAlign: "center", pt: 4 }}>
+        <Typography variant="h5" component="div" sx={{ fontWeight: "bold" }}>
+          Log In
+        </Typography>
+        <IconButton
+          aria-label="close"
+          onClick={handleClose}
+          sx={{
+            position: "absolute",
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey,
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent sx={{ p: 4 }}>
         <Box
           sx={{
             display: "flex",
@@ -72,29 +76,29 @@ const LoginPage = () => {
             alignItems: "center",
           }}
         >
+          {/* Icon */}
           <Box
             sx={{
-              width: 120,
-              height: 120,
-              borderRadius: 4,
+              width: 100,
+              height: 100,
+              borderRadius: 3,
               bgcolor: "#ffcf9e",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              mb: 4,
+              mb: 3,
+              p: 1.5,
             }}
           >
             <Box
               component="img"
               src={imageIcon}
-              sx={{
-                width: "100%",
-                height: "auto",
-              }}
+              alt="Music Illustration"
+              sx={{ width: "100%", height: "auto" }}
             />
           </Box>
 
-          {/* --- Form --- */}
+          {/* Form */}
           <Box
             component="form"
             noValidate
@@ -105,7 +109,6 @@ const LoginPage = () => {
               margin="normal"
               required
               fullWidth
-              id="username"
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -117,40 +120,27 @@ const LoginPage = () => {
               name="password"
               placeholder="Password"
               type="password"
-              id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-
             {status === "failed" && (
-              <Alert severity="error" sx={{ mt: 2, bgcolor: "error.dark" }}>
-                {error || "Invalid credentials"}
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {error === "Failed to fetch"
+                  ? "Cannot connect to server."
+                  : error || "Invalid credentials."}
               </Alert>
             )}
-
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              color="primary" // This will now be the mint green color from the theme
+              color="primary"
               sx={{ mt: 3, mb: 2, height: 56 }}
               disabled={status === "loading"}
             >
               {status === "loading" ? <CircularProgress size={24} /> : "Log In"}
             </Button>
-
-            {/* --- Links --- */}
             <Box sx={{ textAlign: "center" }}>
-              <Link
-                href="#"
-                variant="body2"
-                underline="always"
-                color="text.secondary"
-              >
-                Don't have an account? Sign Up
-              </Link>
-            </Box>
-            <Box sx={{ textAlign: "center", mt: 1 }}>
               <Link
                 href="#"
                 variant="body2"
@@ -162,9 +152,9 @@ const LoginPage = () => {
             </Box>
           </Box>
         </Box>
-      </Container>
-    </Box>
+      </DialogContent>
+    </Dialog>
   );
 };
 
-export default LoginPage;
+export default LoginModal;

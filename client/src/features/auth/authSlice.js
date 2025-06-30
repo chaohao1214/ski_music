@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { apiPost, apiGet, setAuthToken } from "../utils/apiClient";
+import { apiPost, apiGet, setAuthToken } from "../../utils/apiClient";
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
 
@@ -36,6 +36,7 @@ const authSlice = createSlice({
     isAuthenticated: !!localStorage.getItem("token"),
     status: "idle",
     error: null,
+    isLoginModalOpen: false,
   },
   reducers: {
     logout: (state) => {
@@ -44,6 +45,12 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
+    },
+    openLoginModal: (state) => {
+      state.isLoginModalOpen = true;
+    },
+    closeLoginModal: (state) => {
+      state.isLoginModalOpen = false;
     },
     clearError: (state) => {
       state.error = null;
@@ -62,6 +69,7 @@ const authSlice = createSlice({
         state.user = { id, username };
         state.token = token;
         state.isAuthenticated = true;
+        state.isLoginModalOpen = false;
 
         //persist token and set it for future api call
         localStorage.setItem("token", token);
@@ -88,6 +96,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { logout, clearError, closeLoginModal, openLoginModal } =
+  authSlice.actions;
 
 export default authSlice.reducer;
