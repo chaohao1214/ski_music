@@ -32,26 +32,59 @@ export const registerUser = (req, res) => {
   }
 };
 
-// @desc    login
-// @route   POST /api/auth/login
+/**
+ * @desc    Authenticate a user and get token
+ * @route   POST /api/auth/login
+ * @access  Public
+ */
 export const loginUser = (req, res) => {
   const { username, password } = req.body;
 
-  const stmt = db.prepare("SELECT * FROM users WHERE username = ?");
-  const user = stmt.get(username);
+  if (!username || !password) {
+    return res
+      .status(400)
+      .json({ message: "Please provide both username and password" });
+  }
 
-  if (user && bcrypt.compare(password, user.password_hash)) {
-    //generate jwt
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1h", // valid for an hour
-      }
+  try {
+    const stmt = db.prepare("SELECT * FROM users WHERE username = ?");
+    const user = stmt.get(username);
+
+    if (!user) {
+      console.log(`Login attempt failed: User '${username}' not found.`);
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const isPasswordMatch = bcrypt.compareSync(password, user.password_hash);
+
+    if (isPasswordMatch) {
+      console.log(`Login successful for user: ${user.username}`);
+
+      // Create JWT
+      const token = jwt.sign(
+        { id: user.id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "8h" }
+      );
+
+      res.json({
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        token,
+      });
+    } else {
+      console.log(
+        `Login attempt failed: Incorrect password for user '${username}'.`
+      );
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+  } catch (error) {
+    console.error(
+      "An unexpected error occurred during the login process:",
+      error
     );
-    res.json({ id: user.id, username: user.username, token, role: user.role });
-  } else {
-    res.status(401).json({ message: "Invalid credentials" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 

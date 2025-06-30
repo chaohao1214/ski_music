@@ -3,24 +3,29 @@ import bcrypt from "bcryptjs";
 const db = new Database("skating_rink.db", { verbose: console.log });
 
 function ensureAdminExists() {
+  const adminUsername = process.env.ADMIN_USERNAME;
+  const adminPassowrd = process.env.ADMIN_PASSWORD;
+
+  if (!adminUsername || !adminPassowrd) {
+    console.warn(
+      "WARNING: ADMIN_USERNAME or ADMIN_PASSWORD not set in .env file. Skipping admin creation."
+    );
+    return;
+  }
   const stmt = db.prepare(
     "SELECT id FROM users WHERE username= ? AND role = ?"
   );
-  const admin = stmt.get("admin", "admin");
+  const admin = stmt.get(adminUsername, "admin");
   if (!admin) {
-    // Lazy-load bcrypt only when it's actually needed for the setup
-
-    console.log("Admin user not found, creating one...");
+    console.log(`Admin user '${adminUsername}' not found, creating one...`);
     const salt = bcrypt.genSaltSync(10);
-    const password_hash = bcrypt.hashSync("admin123", salt);
+    const password_hash = bcrypt.hashSync(adminPassowrd, salt);
 
     const insertStmt = db.prepare(
       "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)"
     );
-    insertStmt.run("admin", password_hash, "admin");
-    console.log(
-      'Admin user created with default password "admin123". Please change it.'
-    );
+    insertStmt.run(adminUsername, password_hash, "admin");
+    console.log(`Admin user '${adminUsername}' created successfully.`);
   }
 }
 
