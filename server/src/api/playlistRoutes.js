@@ -3,12 +3,24 @@ import { protect } from "../middleware/authMiddleware.js";
 import {
   addSongsToPlaylist,
   getPlaylistState,
+  removeSongFromPlaylist,
+  updatePlaylistOrder,
 } from "../controllers/playlistController.js";
 
-const router = express.Router();
+const playlistRouter = (broadcast) => {
+  const router = express.Router();
 
-router.get("/", protect, getPlaylistState);
+  router.use(protect);
 
-router.post("/add", protect, addSongsToPlaylist);
+  router.get("/", getPlaylistState);
 
-export default router;
+  router.post("/add", addSongsToPlaylist);
+
+  router.delete("/remove/:playlistItemId", removeSongFromPlaylist);
+
+  router.put("/reorder", updatePlaylistOrder);
+
+  return router;
+};
+
+export default playlistRouter;
