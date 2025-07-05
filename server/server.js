@@ -3,12 +3,13 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
-import http from "http";
+import { createServer } from "http";
 import { initDb } from "./src/services/databaseService.js";
 import authRoutes from "./src/api/authRoutes.js";
 import playlistRoutes from "./src/api/playlistRoutes.js";
 import songRoutes from "./src/api/songsRoutes.js";
-import { setupWebSocket } from "./src/services/websocketService.js";
+import { Server } from "socket.io";
+import { handleSocketConnections } from "./src/services/socketService.js";
 
 //initialize database
 initDb();
@@ -19,15 +20,25 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+//API Routes
 app.use("/api/playlist", playlistRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/songs", songRoutes);
 
+// Socket Integration
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "https://localhost:5173",
+    methods: ["GET", "POST"],
+  },
+});
+
+// Handle all socket logic in a separate service
+handleSocketConnections(io);
+
 const PORT = process.env.PORT || 3001;
 
-const server = http.createServer(app);
-setupWebSocket(server);
-
-server.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`🚀 HTTP & WebSocket server running on http://localhost:${PORT}`);
 });

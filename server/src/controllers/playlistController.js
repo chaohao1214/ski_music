@@ -1,6 +1,7 @@
 import db from "../services/databaseService.js";
-import { broadcast } from "../services/websocketService.js";
 
+// This is the room name we defined in socketService.js
+const roomName = "music-control-room";
 let playerState = {
   currentSongIndex: -1, // -1 means nothing is selected
   status: "stopped", // 'playing', 'paused', 'stopped'
@@ -12,7 +13,7 @@ let playerState = {
  * @param {function} broadcast - The WebSocket broadcast function.
  */
 
-const getLatestStateAndBroadcast = (broadcast) => {
+const getLatestStateAndBroadcast = (io) => {
   try {
     const playlistQuery = `
       SELECT
@@ -28,11 +29,8 @@ const getLatestStateAndBroadcast = (broadcast) => {
       player: playerState,
     };
 
-    broadcast({
-      type: "STATE_UPDATE",
-      payload: fullState,
-    });
-    zz;
+    io.to(roomName).emit("playlist:update", fullState);
+    console.log("Broadcasted latest state to room:", roomName);
   } catch (error) {
     console.error("Error fetching latest state for broadcast:", error);
   }
@@ -98,7 +96,7 @@ export const addSongsToPlaylist = (req, res) => {
 
     addTransaction();
 
-    getLatestStateAndBroadcast(broadcast);
+    getLatestStateAndBroadcast(req.io);
 
     res.status(201).json(song);
   } catch (error) {
@@ -113,17 +111,25 @@ export const addSongsToPlaylist = (req, res) => {
  * @access  Protected
  */
 
-export const removeSongFromPlaylist = (broadcast) => {
+export const removeSongFromPlaylist = (req, res) => {
   const { playlistItemId } = req.params;
 
   try {
-    const result = db
-      .prepare("DELETE FROM playlist_items WHERE id = ?")
-      .run(playlistItemId);
-    if (result.changes === 0) {
-      return res.status(404).json({ message: "Playlist item not found." });
-    }
-    getLatestStateAndBroadcast(broadcast);
+    const deleteTransaction = db.transaction(() => {
+      const itemToDelete = db
+        .prepare("SELECT position FROM playlist_items WHERE id = ?")
+        .get(playlistItemId);
+      if (!itemToDelete) {
+        throw new Error("PlaylistItemNotFound");
+      }
+      db.prepare("DELETE FROM playlist_items WHERE id = ?").run(playlistItemId);
+      db.prepare(
+        "UPDATE playlist_items SET position = position - 1 WHERE position > ?"
+      ).run(itemToDelete.position);
+    });
+
+    deleteTransaction();
+    getLatestStateAndBroadcast(req.io);
     res.status(200).json({ message: "Song removed from playlist." });
   } catch (error) {
     console.error("Error removing song from playlist:", error);
@@ -137,7 +143,7 @@ export const removeSongFromPlaylist = (broadcast) => {
  * @access  Protected
  */
 
-export const updatePlaylistOrder = (broadcast) => (req, res) => {
+export const updatePlaylistOrder = (req, res) => {
   const { orderedIds } = req.body;
 
   if (!Array.isArray(orderedIds)) {
@@ -153,11 +159,11 @@ export const updatePlaylistOrder = (broadcast) => (req, res) => {
       );
       orderedIds.forEach((id, index) => {
         // The new position is the index in the array (e.g., 0, 1, 2...)
-        updateStmt.run(index, id);
+        updateStmt.run(index + 1, id);
       });
     });
     reorderTransaction();
-    getLatestStateAndBroadcast();
+    getLatestStateAndBroadcast(req.io);
     res.status(200).json({ message: "Playlist reordered successfully." });
   } catch (error) {
     console.error("Error reordering playlist:", error);
