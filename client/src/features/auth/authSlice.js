@@ -17,7 +17,7 @@ export const loginUser = createAsyncThunk(
 
 export const getMe = createAsyncThunk(
   "auth/getMe",
-  async (__dirname, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
       const data = await apiGet("/api/auth/me");
       return data;
@@ -83,7 +83,7 @@ const authSlice = createSlice({
       .addCase(getMe.fulfilled, (state, action) => {
         state.isAuthenticated = true;
         state.user = action.payload;
-        state.status == "succeeded";
+        state.status = "succeeded";
       })
       .addCase(getMe.rejected, (state, action) => {
         state.status = "failed";
