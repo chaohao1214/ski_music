@@ -27,10 +27,9 @@ export const fetchPlaylist = createAsyncThunk(
 
 export const addSongToPlaylist = createAsyncThunk(
   "music/addSong",
-  async (songId, { dispatch, rejectWithValue }) => {
+  async (songId, { rejectWithValue }) => {
     try {
       await apiPost("/api/playlist/add", { songId });
-      dispatch(fetchPlaylist());
     } catch (error) {
       return rejectWithValue(error.message || "Failed to add song");
     }
@@ -48,7 +47,13 @@ const initialState = {
 const musicSlice = createSlice({
   name: "music",
   initialState,
-  reducers: {},
+  reducers: {
+    setPlaylistState: (state, action) => {
+      const { playlist, player } = action.payload;
+      state.currentPlaylist = playlist;
+      state.playerState = player;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchSongLibrary.pending, (state) => {
@@ -77,5 +82,7 @@ const musicSlice = createSlice({
       });
   },
 });
+
+export const { setPlaylistState } = musicSlice.actions;
 
 export default musicSlice.reducer;
