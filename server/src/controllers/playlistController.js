@@ -88,7 +88,7 @@ export const addSongsToPlaylist = (req, res) => {
           "SELECT COALESCE(MAX(position), 0) as max_pos FROM playlist_items"
         )
         .get();
-      const nextPosition = maxPosResult.max_pos + 1;
+      const nextPosition = maxPositionResult.max_pos + 1;
       db.prepare(
         "INSERT INTO playlist_items (song_id, position) VALUES (?, ?)"
       ).run(songId, nextPosition);

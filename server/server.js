@@ -19,6 +19,10 @@ const app = express();
 // middleware
 app.use(cors());
 app.use(express.json());
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
 
 //API Routes
 app.use("/api/playlist", playlistRoutes);
