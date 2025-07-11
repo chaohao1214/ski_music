@@ -65,8 +65,8 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.status = "succeeded";
-        const { id, username, token } = action.payload;
-        state.user = { id, username };
+        const { id, username, token, role } = action.payload;
+        state.user = { id, username, role };
         state.token = token;
         state.isAuthenticated = true;
         state.isLoginModalOpen = false;

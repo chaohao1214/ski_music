@@ -93,7 +93,8 @@ export const loginUser = (req, res) => {
 // @access  Protected
 
 export const getMe = (req, res) => {
-  const user = db.prepare("SELECT id, username, role FROM users WHERE id = ?");
+  const stmt = db.prepare("SELECT id, username, role FROM users WHERE id = ?");
+  const user = stmt.get(req.user.id);
   if (user) {
     res.json(user);
   } else {
