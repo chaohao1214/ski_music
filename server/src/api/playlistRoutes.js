@@ -2,7 +2,6 @@ import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
 import {
   addSongsToPlaylist,
-  getPlaylistState,
   removeSongFromPlaylist,
   updatePlaylistOrder,
 } from "../controllers/playlistController.js";
@@ -11,8 +10,6 @@ const playlistRouter = (broadcast) => {
   const router = express.Router();
 
   router.use(protect);
-
-  router.get("/", getPlaylistState);
 
   router.post("/add", addSongsToPlaylist);
 

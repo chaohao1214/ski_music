@@ -1,67 +1,7 @@
 import db from "../services/databaseService.js";
+import { getLatestStateAndBroadcast } from "../services/playerStateService.js";
 
-// This is the room name we defined in socketService.js
-const roomName = "music-control-room";
-let playerState = {
-  currentSongIndex: -1, // -1 means nothing is selected
-  status: "stopped", // 'playing', 'paused', 'stopped'
-};
-
-/**
- * A helper function to get the latest full state from the DB and broadcast it.
- * This ensures all clients receive the most up-to-date information.
- * @param {function} broadcast - The WebSocket broadcast function.
- */
-
-const getLatestStateAndBroadcast = (io) => {
-  try {
-    const playlistQuery = `
-      SELECT
-        s.id, s.title, s.artist, s.duration, s.url,
-        pi.position, pi.id as playlistItemId
-      FROM playlist_items AS pi
-      JOIN songs AS s ON pi.song_id = s.id
-      ORDER BY pi.position ASC;
-    `;
-    const playlist = db.prepare(playlistQuery).all();
-    const fullState = {
-      playlist: playlist,
-      player: playerState,
-    };
-
-    io.to(roomName).emit("playlist:update", fullState);
-    console.log("Broadcasted latest state to room:", roomName);
-  } catch (error) {
-    console.error("Error fetching latest state for broadcast:", error);
-  }
-};
-
-// --- Controller Functions ---
-
-/**
- * @desc    Get the current playlist and player state
- * @route   GET /api/playlist
- * @access  Protected
- */
-
-export const getPlaylistState = (req, res) => {
-  try {
-    const playlistQuery = `
-      SELECT
-        s.id, s.title, s.artist, s.duration, s.url,
-        pi.position, pi.id as playlistItemId
-      FROM playlist_items AS pi
-      JOIN songs AS s ON pi.song_id = s.id
-      ORDER BY pi.position ASC;
-    `;
-    const playlist = db.prepare(playlistQuery).all();
-
-    res.json({ playlist: playlist, player: playerState });
-  } catch (error) {
-    console.error("Error fetching playlist state:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+getLatestStateAndBroadcast();
 
 /**
  * @desc    Add a song to the current playlist
