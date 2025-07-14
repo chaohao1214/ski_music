@@ -17,7 +17,7 @@ export const fetchPlaylist = createAsyncThunk(
   "music/fetchPlaylist",
   async (_, { rejectWithValue }) => {
     try {
-      const data = await apiGet("/api/playlist");
+      const data = await apiGet("/api/player/state");
       return data;
     } catch (error) {
       return rejectWithValue(error.message || "Failed to fetch playlist");
@@ -71,7 +71,7 @@ const musicSlice = createSlice({
       .addCase(fetchPlaylist.pending, (state) => {})
       .addCase(fetchPlaylist.fulfilled, (state, action) => {
         state.currentPlaylist = action.payload.playlist;
-        state.playerState = action.payload.plater;
+        state.playerState = action.payload.player;
       })
       .addCase(fetchPlaylist.rejected, (state, action) => {
         state.error = action.payload;

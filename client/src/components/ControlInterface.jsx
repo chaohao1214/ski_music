@@ -1,0 +1,151 @@
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Grid,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  Typography,
+} from "@mui/material";
+import { logout } from "../features/auth/authSlice";
+import {
+  addSongToPlaylist,
+  fetchPlaylist,
+  fetchSongLibrary,
+} from "../features/music/musicSlice";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import { useSocket } from "../contexts/SocketContext";
+const ControlInterface = () => {
+  const dispatch = useDispatch();
+  const socket = useSocket();
+  const { user } = useSelector((state) => state.auth);
+  const {
+    songLibrary,
+    status: musicStatus,
+    currentPlaylist,
+  } = useSelector((state) => state.music);
+
+  console.log("user1111", user);
+
+  useEffect(() => {
+    socket.connect();
+
+    dispatch(fetchSongLibrary());
+    dispatch(fetchPlaylist());
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [dispatch, socket]);
+
+  const handleAddSong = (songId) => {
+    dispatch(addSongToPlaylist(songId));
+    dispatch(fetchPlaylist());
+  };
+
+  const handlePlay = () => {
+    socket.emit("player:command", { action: "PLAY" });
+  };
+
+  const handlePause = () => {
+    socket.emit("player:command", { action: "PAUSE" });
+  };
+
+  return (
+    <Container maxWidth="lg">
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          my: 4,
+        }}
+      >
+        <Typography variant="h4">Control Interface</Typography>
+      </Box>
+      <Box>
+        <Typography component="span" sx={{ mr: 2 }}>
+          Welcome, {user?.username} ({user?.role})
+        </Typography>
+        <Button onClick={() => dispatch(logout())} sx={{ color: "white" }}>
+          Logout
+        </Button>
+      </Box>
+      <Box sx={{ mt: 2 }}>
+        <Button sx={{ mr: 1 }} variant="contained" onClick={handlePlay}>
+          Play
+        </Button>
+        <Button variant="contained" color="seconrdary" onClick={handlePause}>
+          Pause
+        </Button>
+      </Box>
+
+      {musicStatus === "loading" && <CircularProgress />}
+      <Grid container spacing={4}>
+        <Grid item xs={12} md={6}>
+          <Typography variant="h5" gutterBottom>
+            Song Library
+          </Typography>
+          <List
+            sx={{
+              bgcolor: "background.paper",
+              borderRadius: 2,
+              maxHeight: "60vh",
+              overflow: "auto",
+            }}
+          >
+            {songLibrary.map((song) => (
+              <ListItem
+                key={song.id}
+                secondaryAction={
+                  <IconButton
+                    edge="end"
+                    aria-label="add"
+                    onClick={() => handleAddSong(song.id)}
+                  >
+                    <AddCircleIcon color="primary" />
+                  </IconButton>
+                }
+              >
+                <ListItemText
+                  primary={song.title}
+                  secondary={song.artist || "Unknown Artist"}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Grid>
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <Typography variant="h5" gutterBottom>
+          Current Playlist
+        </Typography>
+        <List
+          sx={{
+            bgcolor: "background.paper",
+            borderRadius: 2,
+            maxHeight: "60vh",
+            overflow: "auto",
+          }}
+        >
+          {currentPlaylist.map((song) => (
+            <ListItem key={song.playlistItemId}>
+              <ListItemText
+                primary={`${song.position}. ${song.title}`}
+                secondary={song.artist || "Unknown Artist"}
+              />
+            </ListItem>
+          ))}
+        </List>
+      </Grid>
+    </Container>
+  );
+};
+
+export default ControlInterface;

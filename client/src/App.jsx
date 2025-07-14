@@ -1,23 +1,14 @@
 import { Route, Routes, BrowserRouter } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
-import ProtectedRoute from "./components/ProtectedRoute";
-import DashboardPage from "./pages/DashboardPage";
 import { useDispatch, useSelector } from "react-redux";
 import { setAuthToken } from "./utils/apiClient";
 import { useEffect } from "react";
-import { getMe, openLoginModal } from "./features/auth/authSlice";
+import { getMe } from "./features/auth/authSlice";
 import LoginModal from "./components/LoginModal";
+import HomePage from "./pages/HomePage";
+import { useSocket } from "./contexts/SocketContext";
+import { setPlaylistState } from "./features/music/musicSlice";
+import PlayerPage from "./pages/PlayerPage";
 
-const HomePage = () => {
-  const dispatch = useDispatch();
-  return (
-    <div style={{ padding: "50px", textAlign: "center" }}>
-      <h1>Welcome to the Music App</h1>
-      <p>This is the public home page.</p>
-      <button onClick={() => dispatch(openLoginModal())}>Open Login</button>
-    </div>
-  );
-};
 const token = localStorage.getItem("token");
 if (token) {
   setAuthToken(token);
@@ -25,6 +16,7 @@ if (token) {
 
 function App() {
   const dispatch = useDispatch();
+  const socket = useSocket();
   const { token } = useSelector((state) => state.auth);
 
   useEffect(() => {
@@ -32,19 +24,25 @@ function App() {
       dispatch(getMe());
     }
   }, [token]);
+
+  useEffect(() => {
+    const handlePlaylistUpdate = (newState) => {
+      console.log("Received playlist:update event with new state:", newState);
+      dispatch(setPlaylistState(newState));
+    };
+
+    socket.on("playlist:update", handlePlaylistUpdate);
+
+    return () => {
+      socket.off("playlist:update", handlePlaylistUpdate);
+    };
+  }, [socket, dispatch]);
   return (
     <BrowserRouter>
       <LoginModal />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/player" element={<PlayerPage />} />
       </Routes>
     </BrowserRouter>
   );
