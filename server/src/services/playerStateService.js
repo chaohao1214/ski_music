@@ -44,8 +44,37 @@ export function getLatestStateAndBroadcast(ioInstance = io) {
     };
     ioInstance.to(roomName).emit("playlist:update", fullState);
     console.log("Broadcasted latest state to room:", roomName);
+    console.log("🎵 Updated playlist state:", playlist);
   } catch (error) {
     console.error("Error fetching latest state for broadcast:", error);
+  }
+}
+
+/**
+ * Returns the latest state without broadcasting.
+ * @returns {object} The current playlist and player state.
+ */
+
+export function getLatestState() {
+  try {
+    const playlistQuery = `SELECT
+        s.id, s.title, s.artist, s.duration, s.url,
+        pi.position, pi.id as playlistItemId
+      FROM playlist_items AS pi
+      JOIN songs AS s ON pi.song_id = s.id
+      ORDER BY pi.position ASC;`;
+
+    const playlist = db.prepare(playlistQuery).all();
+    return {
+      playlist,
+      player: playerState,
+    };
+  } catch (error) {
+    console.error("Error fetching latest state:", error);
+    return {
+      playlist: [],
+      player: playerState,
+    };
   }
 }
 

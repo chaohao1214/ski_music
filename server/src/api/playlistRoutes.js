@@ -6,18 +6,11 @@ import {
   updatePlaylistOrder,
 } from "../controllers/playlistController.js";
 
-const playlistRouter = (broadcast) => {
-  const router = express.Router();
+const router = express.Router();
 
-  router.use(protect);
+router.use(protect);
+router.post("/add", addSongsToPlaylist);
+router.delete("/remove/:playlistItemId", removeSongFromPlaylist);
+router.put("/reorder", updatePlaylistOrder);
 
-  router.post("/add", addSongsToPlaylist);
-
-  router.delete("/remove/:playlistItemId", removeSongFromPlaylist);
-
-  router.put("/reorder", updatePlaylistOrder);
-
-  return router;
-};
-
-export default playlistRouter;
+export default router;

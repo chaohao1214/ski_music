@@ -1,8 +1,6 @@
 import db from "../services/databaseService.js";
 import { getLatestStateAndBroadcast } from "../services/playerStateService.js";
 
-getLatestStateAndBroadcast();
-
 /**
  * @desc    Add a song to the current playlist
  * @route   POST /api/playlist/add
@@ -35,7 +33,6 @@ export const addSongsToPlaylist = (req, res) => {
     });
 
     addTransaction();
-
     getLatestStateAndBroadcast(req.io);
 
     res.status(201).json(song);

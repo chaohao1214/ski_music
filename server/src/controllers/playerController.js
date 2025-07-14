@@ -1,4 +1,5 @@
 import {
+  getLatestState,
   getLatestStateAndBroadcast,
   setCurrentSong,
   setPlayerStatus,
@@ -34,4 +35,9 @@ export const handlePlayerAction = (req, res) => {
   }
   getLatestStateAndBroadcast(req.io);
   res.status(200).json({ message: `Player state updated to ${action}` });
+};
+
+export const getPlayerState = (req, res) => {
+  const state = getLatestState();
+  res.json(state);
 };
