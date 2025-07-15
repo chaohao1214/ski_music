@@ -17,8 +17,10 @@ import {
   addSongToPlaylist,
   fetchPlaylist,
   fetchSongLibrary,
+  removeSongFromPlaylist,
 } from "../features/music/musicSlice";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useSocket } from "../contexts/SocketContext";
 const ControlInterface = () => {
   const dispatch = useDispatch();
@@ -135,9 +137,22 @@ const ControlInterface = () => {
           }}
         >
           {currentPlaylist.map((song) => (
-            <ListItem key={song.playlistItemId}>
+            <ListItem
+              key={song.playlistItemId}
+              secondaryAction={
+                <IconButton
+                  edge="end"
+                  aria-label="delete"
+                  onClick={() =>
+                    dispatch(removeSongFromPlaylist(song.playlistItemId))
+                  }
+                >
+                  <DeleteIcon />
+                </IconButton>
+              }
+            >
               <ListItemText
-                primary={`${song.position}. ${song.title}`}
+                primary={song.title}
                 secondary={song.artist || "Unknown Artist"}
               />
             </ListItem>

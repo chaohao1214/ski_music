@@ -95,3 +95,10 @@ export function setPlayerStatus(newStatus) {
 export function setCurrentSong(songId) {
   playerState.currentSongId = songId;
 }
+
+export const clearCurrentSongIfRemoved = (songId) => {
+  if (playerState.currentSongId === songId) {
+    playerState.currentSongId = -1;
+    playerState.status = "stopped";
+  }
+};

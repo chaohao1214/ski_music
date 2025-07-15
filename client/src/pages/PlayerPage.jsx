@@ -9,31 +9,31 @@ import {
 } from "@mui/material";
 import { useSocket } from "../contexts/SocketContext";
 import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchPlaylist,
+  updatePlaylistFromSocket,
+} from "../features/music/musicSlice";
 
 const PlayerPage = () => {
   const audioRef = useRef();
   const socket = useSocket();
+  const dispatch = useDispatch();
+  const currentPlaylist = useSelector((state) => state.music?.currentPlaylist);
+  const playerState = useSelector((state) => state.music.playerState);
 
-  const [playlist, setPlaylist] = useState([]);
-  const [nowPlaying, setNowPlaying] = useState(null);
-  const [playerState, setPlayerState] = useState({ status: "stopped" });
+  const nowPlaying =
+    currentPlaylist.find((song) => song.id === playerState.currentSongId) ||
+    null;
+
+  console.log("nowPlaying", nowPlaying);
 
   useEffect(() => {
     socket.connect();
 
     const handlePlaylistUpdate = (newState) => {
       console.log("Player Client: Received playlist:update", newState);
-      setPlaylist(newState.playlist);
-      setPlayerState(newState.player);
-
-      // Logic to determine what song should be playing
-      const currentSongInPlaylist = newState.playlist.find(
-        (song) => song.id === newState.player.currentSongId
-      );
-      setNowPlaying(
-        currentSongInPlaylist ||
-          (newState.playlist.length > 0 ? newState.playlist[0] : null)
-      );
+      dispatch(updatePlaylistFromSocket(newState));
     };
 
     // --- Event Handler for receiving playback commands ---
@@ -62,6 +62,11 @@ const PlayerPage = () => {
       socket.disconnect();
     };
   }, [socket]);
+
+  useEffect(() => {
+    dispatch(fetchPlaylist());
+  }, [dispatch]);
+
   return (
     <Container maxWidth="md">
       <Box sx={{ my: 4 }}>
@@ -98,8 +103,8 @@ const PlayerPage = () => {
       </Typography>
       <Paper>
         <List>
-          {playlist.length > 0 ? (
-            playlist.map((song, index) => (
+          {currentPlaylist.length > 0 ? (
+            currentPlaylist.map((song, index) => (
               <ListItem
                 key={song.playlistItemId}
                 selected={song.id === nowPlaying?.id}

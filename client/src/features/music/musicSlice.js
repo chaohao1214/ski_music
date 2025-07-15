@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { apiGet, apiPost } from "../../utils/apiClient";
+import { apiDelete, apiGet, apiPost } from "../../utils/apiClient";
 
 export const fetchSongLibrary = createAsyncThunk(
   "music/fetchLibrary",
@@ -36,6 +36,17 @@ export const addSongToPlaylist = createAsyncThunk(
   }
 );
 
+export const removeSongFromPlaylist = createAsyncThunk(
+  "music/removeSongFromPlaylist",
+  async (playlistItemId, { rejectWithValue }) => {
+    try {
+      await apiDelete(`/api/playlist/remove/${playlistItemId}`);
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to remove song");
+    }
+  }
+);
+
 const initialState = {
   songLibrary: [],
   currentPlaylist: [],
@@ -52,6 +63,10 @@ const musicSlice = createSlice({
       const { playlist, player } = action.payload;
       state.currentPlaylist = playlist;
       state.playerState = player;
+    },
+    updatePlaylistFromSocket(state, action) {
+      state.currentPlaylist = action.payload.playlist;
+      state.playerState = action.payload.player;
     },
   },
   extraReducers: (builder) => {
@@ -79,10 +94,16 @@ const musicSlice = createSlice({
       .addCase(addSongToPlaylist.rejected, (state, action) => {
         console.error("Failed to add song:", action.payload);
         state.error = action.payload;
+      })
+      .addCase(removeSongFromPlaylist.fulfilled, (state, action) => {
+        state.currentPlaylist = state.currentPlaylist.filter(
+          (song) => song.playlistItemId !== action.payload
+        );
       });
   },
 });
 
-export const { setPlaylistState } = musicSlice.actions;
+export const { setPlaylistState, updatePlaylistFromSocket } =
+  musicSlice.actions;
 
 export default musicSlice.reducer;

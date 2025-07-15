@@ -50,4 +50,21 @@ export const apiGet = async (url, params) => {
   }
 };
 
+/**
+ * A generic DELETE request handler
+ * @param {string} url - The endpoint url
+ * @returns {Promise<any>}
+ */
+
+export const apiDelete = async (url) => {
+  try {
+    const response = await apiClient.delete(url);
+    return response.data;
+  } catch (error) {
+    throw error.response
+      ? error.response.data
+      : new Error("An unknown network error occurred");
+  }
+};
+
 export default apiClient;

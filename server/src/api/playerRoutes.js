@@ -10,6 +10,6 @@ const router = express.Router();
 
 router.post("/action", protect, handlePlayerAction);
 
-router.get("/state", protect, getPlayerState);
+router.get("/state", getPlayerState);
 
 export default router;

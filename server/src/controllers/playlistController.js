@@ -1,5 +1,9 @@
 import db from "../services/databaseService.js";
-import { getLatestStateAndBroadcast } from "../services/playerStateService.js";
+import {
+  clearCurrentSongIfRemoved,
+  getLatestStateAndBroadcast,
+  setCurrentSong,
+} from "../services/playerStateService.js";
 
 /**
  * @desc    Add a song to the current playlist
@@ -19,6 +23,8 @@ export const addSongsToPlaylist = (req, res) => {
     if (!song) {
       return res.status(404).json({ message: "Song not found in library" });
     }
+
+    let isFirstSong = false;
     // Use a transaction to safely get the next position and insert the new song
     const addTransaction = db.transaction(() => {
       const maxPositionResult = db
@@ -30,9 +36,17 @@ export const addSongsToPlaylist = (req, res) => {
       db.prepare(
         "INSERT INTO playlist_items (song_id, position) VALUES (?, ?)"
       ).run(songId, nextPosition);
+
+      if (nextPosition === 1) {
+        isFirstSong = true;
+      }
     });
 
     addTransaction();
+
+    if (isFirstSong) {
+      setCurrentSong(songId);
+    }
     getLatestStateAndBroadcast(req.io);
 
     res.status(201).json(song);
@@ -52,20 +66,18 @@ export const removeSongFromPlaylist = (req, res) => {
   const { playlistItemId } = req.params;
 
   try {
-    const deleteTransaction = db.transaction(() => {
-      const itemToDelete = db
-        .prepare("SELECT position FROM playlist_items WHERE id = ?")
-        .get(playlistItemId);
-      if (!itemToDelete) {
-        throw new Error("PlaylistItemNotFound");
-      }
-      db.prepare("DELETE FROM playlist_items WHERE id = ?").run(playlistItemId);
-      db.prepare(
-        "UPDATE playlist_items SET position = position - 1 WHERE position > ?"
-      ).run(itemToDelete.position);
-    });
+    const item = db
+      .prepare("SELECT * FROM playlist_items WHERE id = ?")
+      .get(playlistItemId);
 
-    deleteTransaction();
+    if (!item) {
+      return res.status(404).json({ message: "Playlist item not found." });
+    }
+
+    db.prepare("DELETE FROM playlist_items WHERE id = ?").run(playlistItemId);
+
+    clearCurrentSongIfRemoved(item.song_id);
+
     getLatestStateAndBroadcast(req.io);
     res.status(200).json({ message: "Song removed from playlist." });
   } catch (error) {
