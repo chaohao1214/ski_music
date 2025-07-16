@@ -22,6 +22,7 @@ import {
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useSocket } from "../contexts/SocketContext";
+import UploadZone from "./UploadZone";
 const ControlInterface = () => {
   const dispatch = useDispatch();
   const socket = useSocket();
@@ -82,7 +83,7 @@ const ControlInterface = () => {
         <Button sx={{ mr: 1 }} variant="contained" onClick={handlePlay}>
           Play
         </Button>
-        <Button variant="contained" color="seconrdary" onClick={handlePause}>
+        <Button variant="contained" onClick={handlePause}>
           Pause
         </Button>
       </Box>
@@ -93,6 +94,7 @@ const ControlInterface = () => {
           <Typography variant="h5" gutterBottom>
             Song Library
           </Typography>
+          <UploadZone />
           <List
             sx={{
               bgcolor: "background.paper",

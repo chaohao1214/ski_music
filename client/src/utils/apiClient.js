@@ -67,4 +67,25 @@ export const apiDelete = async (url) => {
   }
 };
 
+/**
+ * Upload files using FormData (for file uploads)
+ * @param {string} url - The endpoint URL
+ * @param {FormData} formData - The form data containing files
+ * @returns {Promise<any>}
+ */
+export const apiUpload = async (url, formData) => {
+  try {
+    const response = await apiClient.post(url, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.message
+      ? error.response.data
+      : new Error("An unknown upload error occurred");
+  }
+};
+
 export default apiClient;

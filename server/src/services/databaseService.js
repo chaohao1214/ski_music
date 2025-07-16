@@ -50,8 +50,9 @@ export function initDb() {
     CREATE TABLE IF NOT EXISTS songs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
+      filename TEXT NOT NULL,
       artist TEXT,
-      duration INTEGER NOT NULL,
+      duration INTEGER,
       url TEXT NOT NULL UNIQUE
     );
   `);

@@ -31,6 +31,7 @@ app.use("/api/playlist", playlistRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/songs", songRoutes);
 app.use("/api/player", playerRoutes);
+app.use("/uploads", express.static("uploads"));
 
 // Socket Integration
 const httpServer = createServer(app);

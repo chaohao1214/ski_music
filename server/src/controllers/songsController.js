@@ -1,5 +1,5 @@
 import db from "../services/databaseService.js";
-
+import path from "path";
 // @desc    Get all songs from the library
 // @route   GET /api/songs
 
@@ -36,5 +36,33 @@ export const addSong = (req, res) => {
     res
       .status(500)
       .json({ message: "Error adding song", error: error.message });
+  }
+};
+
+export const addUploadedSong = (req, res) => {
+  try {
+    const insertedSongs = [];
+    req.files.forEach((file) => {
+      const title = path.basename(
+        file.originalname,
+        path.extname(file.originalname)
+      );
+      const url = `http://localhost:3001/uploads/${file.filename}`;
+
+      const result = db
+        .prepare("INSERT INTO songs (title, filename, url) VALUES (?,?,?)")
+        .run(title, file.filename, url);
+
+      insertedSongs.push({
+        id: result.lastInsertRowid,
+        title,
+        artist: "Unknown",
+        url,
+      });
+    });
+    res.status(201).json({ songs: insertedSongs });
+  } catch (error) {
+    console.error("Upload failed:", error);
+    res.status(500).json({ message: " Failed to upload songs" });
   }
 };
