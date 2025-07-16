@@ -1,5 +1,6 @@
 import db from "../services/databaseService.js";
 import path from "path";
+import fs from "fs";
 // @desc    Get all songs from the library
 // @route   GET /api/songs
 
@@ -64,5 +65,28 @@ export const addUploadedSong = (req, res) => {
   } catch (error) {
     console.error("Upload failed:", error);
     res.status(500).json({ message: " Failed to upload songs" });
+  }
+};
+
+export const deleteSong = (req, res) => {
+  const { songId } = req.params;
+  console.log("🚨 DELETE /api/songs/:songId", req.params.songId);
+  try {
+    const song = db.prepare("SELECT * FROM songs WHERE id = ?").get(songId);
+    if (!song) {
+      return res.status(404).json({ message: "Song not found" });
+    }
+
+    //delete file
+    const filePath = path.join("uploads", song.filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    db.prepare("DELETE FROM songs WHERE id=?").run(songId);
+    res.status(200).json({ message: "Song deleted successfully" });
+  } catch (error) {
+    console.error("Failed to delete song:", error);
+    res.status(500).json({ message: "Failed to delete song" });
   }
 };

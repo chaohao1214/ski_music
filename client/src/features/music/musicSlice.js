@@ -36,6 +36,17 @@ export const addSongToPlaylist = createAsyncThunk(
   }
 );
 
+export const deleteSongFromLibrary = createAsyncThunk(
+  "music/deleteSongFromLibrary",
+  async (songId, { rejectWithValue }) => {
+    try {
+      await apiDelete(`/api/songs/${songId}`);
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to delete song");
+    }
+  }
+);
+
 export const removeSongFromPlaylist = createAsyncThunk(
   "music/removeSongFromPlaylist",
   async (playlistItemId, { rejectWithValue }) => {
@@ -98,6 +109,11 @@ const musicSlice = createSlice({
       .addCase(removeSongFromPlaylist.fulfilled, (state, action) => {
         state.currentPlaylist = state.currentPlaylist.filter(
           (song) => song.playlistItemId !== action.payload
+        );
+      })
+      .addCase(deleteSongFromLibrary.fulfilled, (state, action) => {
+        state.songLibrary = state.songLibrary.filter(
+          (song) => song.id != action.payload
         );
       });
   },

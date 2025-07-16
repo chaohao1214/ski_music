@@ -4,6 +4,7 @@ import { protect } from "../middleware/authMiddleware.js";
 import {
   addSong,
   addUploadedSong,
+  deleteSong,
   getAllSongs,
 } from "../controllers/songsController.js";
 import { admin } from "../middleware/adminMiddleware.js";
@@ -23,5 +24,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 router.post("/upload", upload.array("songs", 10), addUploadedSong);
+router.delete("/:songId", deleteSong);
 
 export default router;

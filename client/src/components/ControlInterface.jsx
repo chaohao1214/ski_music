@@ -10,11 +10,13 @@ import {
   List,
   ListItem,
   ListItemText,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { logout } from "../features/auth/authSlice";
 import {
   addSongToPlaylist,
+  deleteSongFromLibrary,
   fetchPlaylist,
   fetchSongLibrary,
   removeSongFromPlaylist,
@@ -23,6 +25,7 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useSocket } from "../contexts/SocketContext";
 import UploadZone from "./UploadZone";
+import { enqueueSnackbar } from "notistack";
 const ControlInterface = () => {
   const dispatch = useDispatch();
   const socket = useSocket();
@@ -32,8 +35,6 @@ const ControlInterface = () => {
     status: musicStatus,
     currentPlaylist,
   } = useSelector((state) => state.music);
-
-  console.log("user1111", user);
 
   useEffect(() => {
     socket.connect();
@@ -49,6 +50,11 @@ const ControlInterface = () => {
   const handleAddSong = (songId) => {
     dispatch(addSongToPlaylist(songId));
     dispatch(fetchPlaylist());
+  };
+  const handleDeleteSong = (songId) => {
+    dispatch(deleteSongFromLibrary(songId));
+    enqueueSnackbar("Deleted successfully!", { variant: "success" });
+    dispatch(fetchSongLibrary());
   };
 
   const handlePlay = () => {
@@ -107,13 +113,26 @@ const ControlInterface = () => {
               <ListItem
                 key={song.id}
                 secondaryAction={
-                  <IconButton
-                    edge="end"
-                    aria-label="add"
-                    onClick={() => handleAddSong(song.id)}
-                  >
-                    <AddCircleIcon color="primary" />
-                  </IconButton>
+                  <>
+                    <Tooltip title="Add song to playlist">
+                      <IconButton
+                        edge="end"
+                        aria-label="add"
+                        onClick={() => handleAddSong(song.id)}
+                      >
+                        <AddCircleIcon color="primary" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Remove song from song library">
+                      <IconButton
+                        edge="end"
+                        aria-label="delete"
+                        onClick={() => handleDeleteSong(song.id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </>
                 }
               >
                 <ListItemText
