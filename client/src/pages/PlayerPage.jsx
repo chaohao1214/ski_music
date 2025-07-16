@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   fetchPlaylist,
   updatePlaylistFromSocket,
-} from "../features/music/musicSlice";
+} from "../features/music/playlistSlice";
 
 const PlayerPage = () => {
   const audioRef = useRef();

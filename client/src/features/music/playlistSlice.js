@@ -1,18 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { apiDelete, apiGet, apiPost } from "../../utils/apiClient";
 
-export const fetchSongLibrary = createAsyncThunk(
-  "music/fetchLibrary",
-  async (_, { rejectWithValue }) => {
-    try {
-      const data = await apiGet("/api/songs");
-      return data;
-    } catch (error) {
-      return rejectWithValue(error.message || "Failed to fetch song library");
-    }
-  }
-);
-
 export const fetchPlaylist = createAsyncThunk(
   "music/fetchPlaylist",
   async (_, { rejectWithValue }) => {
@@ -36,22 +24,12 @@ export const addSongToPlaylist = createAsyncThunk(
   }
 );
 
-export const deleteSongFromLibrary = createAsyncThunk(
-  "music/deleteSongFromLibrary",
-  async (songId, { rejectWithValue }) => {
-    try {
-      await apiDelete(`/api/songs/${songId}`);
-    } catch (error) {
-      return rejectWithValue(error.message || "Failed to delete song");
-    }
-  }
-);
-
 export const removeSongFromPlaylist = createAsyncThunk(
   "music/removeSongFromPlaylist",
   async (playlistItemId, { rejectWithValue }) => {
     try {
       await apiDelete(`/api/playlist/remove/${playlistItemId}`);
+      return playlistItemId;
     } catch (error) {
       return rejectWithValue(error.message || "Failed to remove song");
     }
@@ -59,45 +37,29 @@ export const removeSongFromPlaylist = createAsyncThunk(
 );
 
 const initialState = {
-  songLibrary: [],
   currentPlaylist: [],
-  playerState: {},
   status: "idle",
   error: null,
 };
 
-const musicSlice = createSlice({
-  name: "music",
+const playlistSlice = createSlice({
+  name: "playlist",
   initialState,
   reducers: {
     setPlaylistState: (state, action) => {
-      const { playlist, player } = action.payload;
-      state.currentPlaylist = playlist;
-      state.playerState = player;
+      state.currentPlaylist = action.payload.playlist;
     },
     updatePlaylistFromSocket(state, action) {
       state.currentPlaylist = action.payload.playlist;
-      state.playerState = action.payload.player;
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchSongLibrary.pending, (state) => {
+      .addCase(fetchPlaylist.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(fetchSongLibrary.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.songLibrary = action.payload;
-      })
-      .addCase(fetchSongLibrary.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload;
-      })
-      // cases for fetch playlist
-      .addCase(fetchPlaylist.pending, (state) => {})
       .addCase(fetchPlaylist.fulfilled, (state, action) => {
         state.currentPlaylist = action.payload.playlist;
-        state.playerState = action.payload.player;
       })
       .addCase(fetchPlaylist.rejected, (state, action) => {
         state.error = action.payload;
@@ -110,16 +72,11 @@ const musicSlice = createSlice({
         state.currentPlaylist = state.currentPlaylist.filter(
           (song) => song.playlistItemId !== action.payload
         );
-      })
-      .addCase(deleteSongFromLibrary.fulfilled, (state, action) => {
-        state.songLibrary = state.songLibrary.filter(
-          (song) => song.id != action.payload
-        );
       });
   },
 });
 
 export const { setPlaylistState, updatePlaylistFromSocket } =
-  musicSlice.actions;
+  playlistSlice.actions;
 
-export default musicSlice.reducer;
+export default playlistSlice.reducer;

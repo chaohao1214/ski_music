@@ -14,27 +14,29 @@ import {
   Typography,
 } from "@mui/material";
 import { logout } from "../features/auth/authSlice";
-import {
-  addSongToPlaylist,
-  deleteSongFromLibrary,
-  fetchPlaylist,
-  fetchSongLibrary,
-  removeSongFromPlaylist,
-} from "../features/music/musicSlice";
+
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useSocket } from "../contexts/SocketContext";
 import UploadZone from "./UploadZone";
 import { enqueueSnackbar } from "notistack";
+import {
+  deleteSongFromLibrary,
+  fetchSongLibrary,
+} from "../features/music/songLibrarySlice";
+import {
+  addSongToPlaylist,
+  fetchPlaylist,
+  removeSongFromPlaylist,
+} from "../features/music/playlistSlice";
 const ControlInterface = () => {
   const dispatch = useDispatch();
   const socket = useSocket();
   const { user } = useSelector((state) => state.auth);
-  const {
-    songLibrary,
-    status: musicStatus,
-    currentPlaylist,
-  } = useSelector((state) => state.music);
+  const { songLibrary, status: musicStatus } = useSelector(
+    (state) => state.songs
+  );
+  const { currentPlaylist } = useSelector((state) => state.playlist);
 
   useEffect(() => {
     socket.connect();

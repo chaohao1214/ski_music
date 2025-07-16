@@ -4,8 +4,8 @@ import { useDispatch } from "react-redux";
 import { useRef } from "react";
 import { useState } from "react";
 import { apiUpload } from "../utils/apiClient";
-import { fetchSongLibrary } from "../features/music/musicSlice";
 import { enqueueSnackbar } from "notistack";
+import { fetchSongLibrary } from "../features/music/songLibrarySlice";
 const UploadZone = () => {
   const dispatch = useDispatch();
   const inputRef = useRef(null);

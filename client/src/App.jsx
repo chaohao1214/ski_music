@@ -6,8 +6,8 @@ import { getMe } from "./features/auth/authSlice";
 import LoginModal from "./components/LoginModal";
 import HomePage from "./pages/HomePage";
 import { useSocket } from "./contexts/SocketContext";
-import { setPlaylistState } from "./features/music/musicSlice";
 import PlayerPage from "./pages/PlayerPage";
+import { setPlayerState } from "./features/music/playerSlice";
 
 const token = localStorage.getItem("token");
 if (token) {
@@ -28,7 +28,7 @@ function App() {
   useEffect(() => {
     const handlePlaylistUpdate = (newState) => {
       console.log("Received playlist:update event with new state:", newState);
-      dispatch(setPlaylistState(newState));
+      dispatch(setPlayerState(newState));
     };
 
     socket.on("playlist:update", handlePlaylistUpdate);
