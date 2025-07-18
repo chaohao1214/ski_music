@@ -60,7 +60,15 @@ const ControlInterface = () => {
   };
 
   const handlePlay = () => {
-    socket.emit("player:command", { action: "PLAY" });
+    if (currentPlaylist.length === 0) {
+      enqueueSnackbar("Playlist is empty!", { variant: "warning" });
+      return;
+    }
+
+    socket.emit("player:command", {
+      action: "PLAY",
+      songId: currentPlaylist[0].id,
+    });
   };
 
   const handlePause = () => {

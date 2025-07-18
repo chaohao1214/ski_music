@@ -102,3 +102,20 @@ export const clearCurrentSongIfRemoved = (songId) => {
     playerState.status = "stopped";
   }
 };
+
+export const getCurrentPlaylist = () => {
+  try {
+    const playlistQuery = `SELECT
+      s.id, s.title, s.artist, s.duration, s.url,
+      pi.position, pi.id as playlistItemId
+    FROM playlist_items AS pi
+    JOIN songs AS s ON pi.song_id = s.id
+    ORDER BY pi.position ASC;`;
+
+    const playlist = db.prepare(playlistQuery).all();
+    return playlist;
+  } catch (error) {
+    console.error("Error fetching current playlist:", error);
+    return [];
+  }
+};

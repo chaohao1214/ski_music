@@ -14,19 +14,22 @@ import {
   fetchPlaylist,
   updatePlaylistFromSocket,
 } from "../features/music/playlistSlice";
+import AudioPlayer from "react-h5-audio-player";
+import "react-h5-audio-player/lib/styles.css";
 
 const PlayerPage = () => {
   const audioRef = useRef();
   const socket = useSocket();
   const dispatch = useDispatch();
-  const currentPlaylist = useSelector((state) => state.music?.currentPlaylist);
-  const playerState = useSelector((state) => state.music.playerState);
-
+  const currentPlaylist = useSelector(
+    (state) => state.playlist?.currentPlaylist
+  );
+  const playerState = useSelector((state) => state.player.playerState);
   const nowPlaying =
     currentPlaylist.find((song) => song.id === playerState.currentSongId) ||
     null;
 
-  console.log("nowPlaying", nowPlaying);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
 
   useEffect(() => {
     socket.connect();
@@ -39,7 +42,7 @@ const PlayerPage = () => {
     // --- Event Handler for receiving playback commands ---
     const handleExecuteCommand = (data) => {
       console.log("Player Client: Received player:execute", data);
-      const audio = audioRef.current;
+      const audio = audioRef.current?.audio?.current;
       if (!audio) return;
 
       if (data.action === "PLAY") {
@@ -67,8 +70,46 @@ const PlayerPage = () => {
     dispatch(fetchPlaylist());
   }, [dispatch]);
 
+  // 📌 Workaround for autoplay restrictions
+  // Browsers block audio.play() unless it's triggered by a user interaction
+  useEffect(() => {
+    const audio = audioRef.current?.audio?.current;
+    if (!audio || !nowPlaying?.url) return;
+
+    const unlockAudio = () => {
+      audio.muted = true;
+      audio
+        .play()
+        .then(() => {
+          audio.pause();
+          audio.muted = false;
+          console.log("🔓 Audio unlocked by user interaction");
+          setAudioUnlocked(true);
+        })
+        .catch((err) => {
+          console.warn("❌ Unlock failed", err);
+        });
+
+      window.removeEventListener("click", unlockAudio);
+    };
+
+    window.addEventListener("click", unlockAudio);
+    return () => {
+      window.removeEventListener("click", unlockAudio);
+    };
+  }, [nowPlaying?.url]);
+
   return (
     <Container maxWidth="md">
+      {!audioUnlocked && (
+        <Typography
+          variant="body2"
+          color="warning.main"
+          sx={{ textAlign: "center", mt: 2 }}
+        >
+          🔒 Audio is locked. Click anywhere on this page to enable playback.
+        </Typography>
+      )}
       <Box sx={{ my: 4 }}>
         <Typography variant="h4" gutterBottom>
           Player Client
@@ -78,8 +119,15 @@ const PlayerPage = () => {
           The view listens for real-time commands to play musice
         </Typography>{" "}
       </Box>
-      <audio ref={audioRef} src={nowPlaying?.url} controls />
 
+      <AudioPlayer
+        ref={audioRef}
+        src={nowPlaying?.url}
+        autoPlay={playerState.status === "playing"}
+        onPlay={() => console.log("🔊 Playing")}
+        onPause={() => console.log("⏸ Paused")}
+        onEnded={() => console.log("⏹ Ended")}
+      />
       <Paper sx={{ mt: 2 }}>
         <List>
           <ListItem>

@@ -1,4 +1,5 @@
 import {
+  getCurrentPlaylist,
   getLatestState,
   getLatestStateAndBroadcast,
   setCurrentSong,
@@ -18,10 +19,24 @@ export const handlePlayerAction = (req, res) => {
 
   switch (action.toLowerCase()) {
     case "play":
-      if (songId) {
-        setCurrentSong(songId);
+      let selectedSongId = songId;
+      if (!selectedSongId) {
+        const playlist = getCurrentPlaylist();
+        if (playlist.length === 0) {
+          return res
+            .status(400)
+            .json({ message: "Playlist is empty. Cannot play." });
+        }
+        selectedSongId = playlist[0].id;
       }
       setPlayerStatus("playing");
+      setCurrentSong(selectedSongId);
+
+      req.io.to("music-control-room").emit("player:execute", {
+        action: "PLAY",
+        songId: selectedSongId,
+      });
+      getLatestStateAndBroadcast(req.io);
       break;
     case "pause":
       setPlayerStatus("paused");
