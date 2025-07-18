@@ -27,15 +27,16 @@ const GuestLandingPage = () => {
   };
 
   return (
-    <Container
-      maxWidth="md"
+    <Box
       sx={{
-        flexGrow: 1,
+        width: "100vw",
+        height: "100vh",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
         justifyContent: "center",
+        alignItems: "center",
         textAlign: "center",
+        px: 2,
       }}
     >
       <Typography
@@ -49,25 +50,25 @@ const GuestLandingPage = () => {
       <Typography variant="h5" color="text.secondary" sx={{ mb: 5 }}>
         Please select your view
       </Typography>
-      <Box sx={{ display: "flex", gap: 4 }}>
+      <Box sx={{ display: "flex", gap: 4, mb: 5 }}>
         <Button variant="contained" size="large" onClick={handleLaunchPlayer}>
-          Player Client
+          Music Player
         </Button>
         <Button variant="contained" size="large" onClick={handleOpenController}>
-          Control Interface
+          Music Controller
         </Button>
       </Box>{" "}
-      <Box sx={{ mt: 4, color: "text.secondary", maxWidth: "500px" }}>
+      <Box sx={{ color: "text.secondary", maxWidth: "600px", px: 2 }}>
         <Typography variant="body1" sx={{ mb: 1 }}>
-          The **Player Client** view should be used on the device connected to
-          the speakers. It listens for commands and plays music.
+          The <strong>Music Player</strong> view should be used on the device
+          connected to the speakers. It listens for commands and plays music.
         </Typography>
         <Typography variant="body1">
-          The **Control Interface** view is used to manage the playlist and
-          control playback remotely.
+          The <strong>Music Controller</strong> view is used to manage the
+          playlist and control playback remotely.
         </Typography>
       </Box>
-    </Container>
+    </Box>
   );
 };
 
@@ -77,18 +78,6 @@ const HomePage = () => {
   return (
     // This outer Box is the main layout container for the entire page.
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      <AppBar position="static" color="transparent" elevation={0}>
-        <Toolbar>
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ flexGrow: 1, textAlign: "center" }}
-          >
-            Music App
-          </Typography>
-        </Toolbar>
-      </AppBar>
-
       {/* The LoginModal is always in the DOM, ready to be opened */}
       <LoginModal />
 

@@ -76,73 +76,127 @@ const ControlInterface = () => {
   };
 
   return (
-    <Container maxWidth="lg">
+    <Box
+      sx={{
+        width: "100vw",
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        p: 4,
+      }}
+    >
       <Box
         sx={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          my: 4,
+          flexDirection: { xs: "column", md: "row" },
+          width: "100%",
+          maxWidth: "1400px",
+          gap: 4,
         }}
       >
-        <Typography variant="h4">Control Interface</Typography>
-      </Box>
-      <Box>
-        <Typography component="span" sx={{ mr: 2 }}>
-          Welcome, {user?.username} ({user?.role})
-        </Typography>
-        <Button onClick={() => dispatch(logout())} sx={{ color: "white" }}>
-          Logout
-        </Button>
-      </Box>
-      <Box sx={{ mt: 2 }}>
-        <Button sx={{ mr: 1 }} variant="contained" onClick={handlePlay}>
-          Play
-        </Button>
-        <Button variant="contained" onClick={handlePause}>
-          Pause
-        </Button>
-      </Box>
-
-      {musicStatus === "loading" && <CircularProgress />}
-      <Grid container spacing={4}>
-        <Grid item xs={12} md={6}>
-          <Typography variant="h5" gutterBottom>
-            Song Library
+        {/* Left Panel */}
+        <Box flex={1}>
+          <Typography variant="h4" gutterBottom>
+            Music Controller
           </Typography>
-          <UploadZone />
+
+          <Box sx={{ mb: 2 }}>
+            <Typography component="span" sx={{ mr: 2 }}>
+              Welcome, {user?.username} ({user?.role})
+            </Typography>
+            <Button onClick={() => dispatch(logout())} sx={{ color: "white" }}>
+              Logout
+            </Button>
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            <Button sx={{ mr: 1 }} variant="contained" onClick={handlePlay}>
+              Play
+            </Button>
+            <Button variant="contained" onClick={handlePause}>
+              Pause
+            </Button>
+          </Box>
+
+          {musicStatus === "loading" && <CircularProgress sx={{ my: 2 }} />}
+
+          <Box>
+            <Typography variant="h5" gutterBottom>
+              Song Library
+            </Typography>
+            <UploadZone />
+            <List
+              sx={{
+                bgcolor: "background.paper",
+                borderRadius: 2,
+                maxHeight: "60vh",
+                overflow: "auto",
+                mt: 1,
+              }}
+            >
+              {songLibrary.map((song) => (
+                <ListItem
+                  key={song.id}
+                  secondaryAction={
+                    <>
+                      <Tooltip title="Add song to playlist">
+                        <IconButton
+                          edge="end"
+                          aria-label="add"
+                          onClick={() => handleAddSong(song.id)}
+                        >
+                          <AddCircleIcon color="primary" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Remove song from song library">
+                        <IconButton
+                          edge="end"
+                          aria-label="delete"
+                          onClick={() => handleDeleteSong(song.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  }
+                >
+                  <ListItemText
+                    primary={song.title}
+                    secondary={song.artist || "Unknown Artist"}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+        </Box>
+
+        {/* Right Panel */}
+        <Box flex={1}>
+          <Typography variant="h5" gutterBottom>
+            Current Playlist
+          </Typography>
           <List
             sx={{
               bgcolor: "background.paper",
               borderRadius: 2,
-              maxHeight: "60vh",
+              maxHeight: "80vh",
               overflow: "auto",
             }}
           >
-            {songLibrary.map((song) => (
+            {currentPlaylist.map((song) => (
               <ListItem
-                key={song.id}
+                key={song.playlistItemId}
                 secondaryAction={
-                  <>
-                    <Tooltip title="Add song to playlist">
-                      <IconButton
-                        edge="end"
-                        aria-label="add"
-                        onClick={() => handleAddSong(song.id)}
-                      >
-                        <AddCircleIcon color="primary" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Remove song from song library">
-                      <IconButton
-                        edge="end"
-                        aria-label="delete"
-                        onClick={() => handleDeleteSong(song.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </>
+                  <IconButton
+                    edge="end"
+                    aria-label="delete"
+                    onClick={() =>
+                      dispatch(removeSongFromPlaylist(song.playlistItemId))
+                    }
+                  >
+                    <DeleteIcon />
+                  </IconButton>
                 }
               >
                 <ListItemText
@@ -152,45 +206,9 @@ const ControlInterface = () => {
               </ListItem>
             ))}
           </List>
-        </Grid>
-      </Grid>
-
-      <Grid item xs={12} md={6}>
-        <Typography variant="h5" gutterBottom>
-          Current Playlist
-        </Typography>
-        <List
-          sx={{
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            maxHeight: "60vh",
-            overflow: "auto",
-          }}
-        >
-          {currentPlaylist.map((song) => (
-            <ListItem
-              key={song.playlistItemId}
-              secondaryAction={
-                <IconButton
-                  edge="end"
-                  aria-label="delete"
-                  onClick={() =>
-                    dispatch(removeSongFromPlaylist(song.playlistItemId))
-                  }
-                >
-                  <DeleteIcon />
-                </IconButton>
-              }
-            >
-              <ListItemText
-                primary={song.title}
-                secondary={song.artist || "Unknown Artist"}
-              />
-            </ListItem>
-          ))}
-        </List>
-      </Grid>
-    </Container>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

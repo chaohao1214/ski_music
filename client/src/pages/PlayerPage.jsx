@@ -56,7 +56,6 @@ const PlayerPage = () => {
     // Start listening for events from the server
     socket.on("playlist:update", handlePlaylistUpdate);
     socket.on("player:execute", handleExecuteCommand);
-
     socket.emit("playlist:get_state");
 
     return () => {
@@ -83,13 +82,9 @@ const PlayerPage = () => {
         .then(() => {
           audio.pause();
           audio.muted = false;
-          console.log("🔓 Audio unlocked by user interaction");
           setAudioUnlocked(true);
         })
-        .catch((err) => {
-          console.warn("❌ Unlock failed", err);
-        });
-
+        .catch(() => {});
       window.removeEventListener("click", unlockAudio);
     };
 
@@ -100,77 +95,113 @@ const PlayerPage = () => {
   }, [nowPlaying?.url]);
 
   return (
-    <Container maxWidth="md">
-      {!audioUnlocked && (
-        <Typography
-          variant="body2"
-          color="warning.main"
-          sx={{ textAlign: "center", mt: 2 }}
+    <Box
+      sx={{
+        width: "100vw",
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        p: { xs: 2, md: 4 },
+      }}
+    >
+      <Box
+        sx={{
+          width: "100%",
+          maxWidth: "1400px",
+        }}
+      >
+        {!audioUnlocked && (
+          <Typography
+            variant="body2"
+            color="warning.main"
+            sx={{ textAlign: "center", mb: 2 }}
+          >
+            🔒 Click anywhere to unlock audio playback
+          </Typography>
+        )}
+
+        <Box
+          display="flex"
+          flexDirection={{ xs: "column", md: "row" }}
+          justifyContent="space-between"
+          alignItems="flex-start"
+          gap={{ xs: 4, md: 6 }}
         >
-          🔒 Audio is locked. Click anywhere on this page to enable playback.
-        </Typography>
-      )}
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Player Client
-        </Typography>
-        <Typography color="text.secondary">
-          {" "}
-          The view listens for real-time commands to play musice
-        </Typography>{" "}
-      </Box>
+          {/* Left: Player and Info */}
+          <Box
+            flex={1}
+            minWidth={{ xs: "100%", md: "50%" }}
+            sx={{ px: { xs: 1, sm: 2 } }}
+          >
+            <Typography variant="h4" gutterBottom>
+              Music Player
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+              Real-time music control interface
+            </Typography>
 
-      <AudioPlayer
-        ref={audioRef}
-        src={nowPlaying?.url}
-        autoPlay={playerState.status === "playing"}
-        onPlay={() => console.log("🔊 Playing")}
-        onPause={() => console.log("⏸ Paused")}
-        onEnded={() => console.log("⏹ Ended")}
-      />
-      <Paper sx={{ mt: 2 }}>
-        <List>
-          <ListItem>
-            <ListItemText
-              primary="Now Playing: "
-              secondary={
-                nowPlaying
-                  ? `${nowPlaying.title} -${nowPlaying.artist}`
-                  : "None"
-              }
+            <AudioPlayer
+              ref={audioRef}
+              src={nowPlaying?.url}
+              autoPlay={playerState.status === "playing"}
+              onPlay={() => console.log("Playing")}
+              onPause={() => console.log("Paused")}
+              onEnded={() => console.log("Ended")}
+              style={{
+                borderRadius: 8,
+                marginTop: 16,
+                width: "100%",
+                fontSize: "1.2rem",
+              }}
             />
-          </ListItem>
-          <ListItem>
-            <ListItemText primary="Status:" secondary={playerState.status} />
-          </ListItem>
-        </List>
-      </Paper>
 
-      <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>
-        Current Playlist
-      </Typography>
-      <Paper>
-        <List>
-          {currentPlaylist.length > 0 ? (
-            currentPlaylist.map((song, index) => (
-              <ListItem
-                key={song.playlistItemId}
-                selected={song.id === nowPlaying?.id}
-              >
-                <ListItemText
-                  primary={`${index + 1}. ${song.title}`}
-                  secondary={song.artist || "Unknown Artist"}
-                />
-              </ListItem>
-            ))
-          ) : (
-            <ListItem>
-              <ListItemText primary="Playlist is empty. Waiting for controller..." />
-            </ListItem>
-          )}
-        </List>
-      </Paper>
-    </Container>
+            <Paper sx={{ mt: 3, p: 3 }}>
+              <Typography variant="subtitle1">
+                Now Playing:{" "}
+                <strong>{nowPlaying ? nowPlaying.title : "None"}</strong>
+              </Typography>
+              <Typography color="text.secondary">
+                Artist: {nowPlaying?.artist || "Unknown"}
+              </Typography>
+              <Typography mt={1}>Status: {playerState.status}</Typography>
+            </Paper>
+          </Box>
+
+          {/* Right: Playlist */}
+          <Box
+            flex={1}
+            minWidth={{ xs: "100%", md: "50%" }}
+            sx={{ px: { xs: 1, sm: 2 } }}
+          >
+            <Typography variant="h4" gutterBottom>
+              Current Playlist
+            </Typography>
+            <Paper sx={{ maxHeight: 500, overflowY: "auto", p: 2 }}>
+              <List>
+                {currentPlaylist.length > 0 ? (
+                  currentPlaylist.map((song, index) => (
+                    <ListItem
+                      key={song.playlistItemId}
+                      selected={song.id === nowPlaying?.id}
+                    >
+                      <ListItemText
+                        primary={`${index + 1}. ${song.title}`}
+                        secondary={song.artist || "Unknown Artist"}
+                      />
+                    </ListItem>
+                  ))
+                ) : (
+                  <ListItem>
+                    <ListItemText primary="Playlist is empty" />
+                  </ListItem>
+                )}
+              </List>
+            </Paper>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
