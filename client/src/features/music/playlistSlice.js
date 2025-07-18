@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { apiDelete, apiGet, apiPost } from "../../utils/apiClient";
 
 export const fetchPlaylist = createAsyncThunk(
-  "music/fetchPlaylist",
+  "playlist/fetchPlaylist",
   async (_, { rejectWithValue }) => {
     try {
       const data = await apiGet("/api/player/state");
@@ -14,7 +14,7 @@ export const fetchPlaylist = createAsyncThunk(
 );
 
 export const addSongToPlaylist = createAsyncThunk(
-  "music/addSong",
+  "playlist/addSong",
   async (songId, { rejectWithValue }) => {
     try {
       await apiPost("/api/playlist/add", { songId });
@@ -25,7 +25,7 @@ export const addSongToPlaylist = createAsyncThunk(
 );
 
 export const removeSongFromPlaylist = createAsyncThunk(
-  "music/removeSongFromPlaylist",
+  "playlist/removeSongFromPlaylist",
   async (playlistItemId, { rejectWithValue }) => {
     try {
       await apiDelete(`/api/playlist/remove/${playlistItemId}`);

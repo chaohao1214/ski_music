@@ -3,7 +3,7 @@ import { apiGet, apiDelete } from "../../utils/apiClient";
 
 // 🎵 Fetch Song Library
 export const fetchSongLibrary = createAsyncThunk(
-  "music/fetchLibrary",
+  "song/fetchLibrary",
   async (_, { rejectWithValue }) => {
     try {
       const data = await apiGet("/api/songs");
@@ -16,7 +16,7 @@ export const fetchSongLibrary = createAsyncThunk(
 
 // ❌ Delete Song
 export const deleteSongFromLibrary = createAsyncThunk(
-  "music/deleteSongFromLibrary",
+  "song/deleteSongFromLibrary",
   async (songId, { rejectWithValue }) => {
     try {
       await apiDelete(`/api/songs/${songId}`);
