@@ -46,9 +46,6 @@ const playlistSlice = createSlice({
   name: "playlist",
   initialState,
   reducers: {
-    setPlaylistState: (state, action) => {
-      state.currentPlaylist = action.payload.playlist;
-    },
     updatePlaylistFromSocket(state, action) {
       state.currentPlaylist = action.payload.playlist;
     },
