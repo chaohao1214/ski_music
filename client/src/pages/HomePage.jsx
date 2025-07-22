@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import LoginModal from "../components/LoginModal";
 
 import { useNavigate } from "react-router-dom";
-import ControlInterface from "../components/ControlInterface";
+import ControlInterface from "./ControlInterfacePage";
 
 const GuestLandingPage = () => {
   const dispatch = useDispatch();

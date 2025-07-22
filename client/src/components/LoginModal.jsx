@@ -16,11 +16,13 @@ import {
   Link,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { useNavigate } from "react-router-dom";
 
 const LoginModal = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const { isLoginModalOpen, status, error } = useSelector(
     (state) => state.auth
@@ -35,6 +37,10 @@ const LoginModal = () => {
     if (username && password) {
       dispatch(loginUser({ username, password }))
         .unwrap()
+        .then(() => {
+          handleClose();
+          navigate("/remote");
+        })
         .catch((err) => console.error("Failed to login:", err));
     }
   };

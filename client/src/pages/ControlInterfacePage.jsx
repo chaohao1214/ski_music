@@ -18,7 +18,7 @@ import { logout } from "../features/auth/authSlice";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useSocket } from "../contexts/SocketContext";
-import UploadZone from "./UploadZone";
+import UploadZone from "../components/UploadZone";
 import { enqueueSnackbar } from "notistack";
 import {
   deleteSongFromLibrary,
@@ -29,8 +29,10 @@ import {
   fetchPlaylist,
   removeSongFromPlaylist,
 } from "../features/music/playlistSlice";
+import { useNavigate } from "react-router-dom";
 const ControlInterface = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const socket = useSocket();
   const { user } = useSelector((state) => state.auth);
   const { songLibrary, status: musicStatus } = useSelector(
@@ -75,6 +77,14 @@ const ControlInterface = () => {
     socket.emit("player:command", { action: "PAUSE" });
   };
 
+  const handleNext = () => {
+    socket.emit("play:command", { action: "NEXT" });
+  };
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/");
+  };
+
   return (
     <Box
       sx={{
@@ -105,7 +115,7 @@ const ControlInterface = () => {
             <Typography component="span" sx={{ mr: 2 }}>
               Welcome, {user?.username} ({user?.role})
             </Typography>
-            <Button onClick={() => dispatch(logout())} sx={{ color: "white" }}>
+            <Button onClick={handleLogout} sx={{ color: "white" }}>
               Logout
             </Button>
           </Box>
@@ -114,8 +124,11 @@ const ControlInterface = () => {
             <Button sx={{ mr: 1 }} variant="contained" onClick={handlePlay}>
               Play
             </Button>
-            <Button variant="contained" onClick={handlePause}>
+            <Button sx={{ mr: 1 }} variant="contained" onClick={handlePause}>
               Pause
+            </Button>
+            <Button sx={{ mr: 1 }} variant="contained" onClick={handleNext}>
+              Next
             </Button>
           </Box>
 

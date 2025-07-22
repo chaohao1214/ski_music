@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Container,
   List,
   ListItem,
@@ -15,12 +16,15 @@ import {
   updatePlaylistFromSocket,
 } from "../features/music/playlistSlice";
 import AudioPlayer from "react-h5-audio-player";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import "react-h5-audio-player/lib/styles.css";
+import { useNavigate } from "react-router-dom";
 
 const PlayerPage = () => {
   const audioRef = useRef();
   const socket = useSocket();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const currentPlaylist = useSelector(
     (state) => state.playlist?.currentPlaylist
   );
@@ -105,6 +109,23 @@ const PlayerPage = () => {
         p: { xs: 2, md: 4 },
       }}
     >
+      {" "}
+      <Box sx={{ position: "absolute", top: 16, left: 16 }}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate("/")}
+          sx={{
+            color: "white",
+            borderColor: "white",
+            "&:hover": {
+              backgroundColor: "rgba(255, 255, 255, 0.1)",
+              borderColor: "white",
+            },
+          }}
+        >
+          Home
+        </Button>{" "}
+      </Box>
       <Box
         sx={{
           width: "100%",

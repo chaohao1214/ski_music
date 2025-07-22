@@ -8,6 +8,7 @@ import HomePage from "./pages/HomePage";
 import { useSocket } from "./contexts/SocketContext";
 import PlayerPage from "./pages/PlayerPage";
 import { setPlayerState } from "./features/music/playerSlice";
+import ControlInterface from "./pages/ControlInterfacePage";
 
 const token = localStorage.getItem("token");
 if (token) {
@@ -43,6 +44,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/player" element={<PlayerPage />} />
+        <Route path="/remote" element={<ControlInterface />} />
       </Routes>
     </BrowserRouter>
   );
