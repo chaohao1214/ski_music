@@ -4,6 +4,7 @@ import {
   getLatestStateAndBroadcast,
   setCurrentSong,
   setPlayerStatus,
+  getCurrentSongId,
 } from "../services/playerStateService.js";
 
 /**
@@ -41,6 +42,27 @@ export const handlePlayerAction = (req, res) => {
     case "pause":
       setPlayerStatus("paused");
       break;
+    case "next": {
+      const { playlist } = getLatestState();
+      const currentSongId = getCurrentSongId();
+      const currentIndex = playlist.findIndex(
+        (item) => item.id === currentSongId
+      );
+      const nextIndex = (currentIndex + 1) % playlist.length;
+      if (playlist.length === 0 || currentIndex === -1) {
+        return res.status(400).json({ message: "No valid song to play next" });
+      }
+      const nextSong = playlist(nextIndex);
+      if (nextSong) {
+        setCurrentSong(nextSong.id);
+        setPlayerStatus("playing");
+
+        req.io
+          .to("music-control-room")
+          .emit("player:execute", { action: "PLAY", songId: nextSong.id });
+      }
+      break;
+    }
     case "stop":
       setCurrentSong(null);
       setPlayerStatus("stopped");

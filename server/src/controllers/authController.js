@@ -1,11 +1,10 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import db from "../services/databaseService.js";
-
+import { query } from "../services/postgresService.js";
 // @desc register user
 // @route   POST /api/auth/register
 
-export const registerUser = (req, res) => {
+export const registerUser = async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -13,17 +12,18 @@ export const registerUser = (req, res) => {
       .status(400)
       .json({ message: "Please provide username and password" });
   }
+
   const salt = bcrypt.genSaltSync(10);
   const password_hash = bcrypt.hashSync(password, salt);
 
   try {
-    const stmt = db.prepare(
-      "INSERT INTO users (username, password_hash) VALUES (?, ?)"
+    const result = await query(
+      "INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3) RETURNING id",
+      [username, password_hash, "user"]
     );
-    const info = stmt.run(username, password_hash);
-    res.status(201).json({ id: info.lastInsertRowid, username });
+    res.status(201).json({ id: result.rows[0].id, username });
   } catch (error) {
-    if (error.code === "SQLITE_CONSTRAINT_UNIQUE") {
+    if (error.code === "23505") {
       return res.status(409).json({ message: "Username already exists" });
     }
     return res
@@ -37,7 +37,7 @@ export const registerUser = (req, res) => {
  * @route   POST /api/auth/login
  * @access  Public
  */
-export const loginUser = (req, res) => {
+export const loginUser = async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -47,26 +47,24 @@ export const loginUser = (req, res) => {
   }
 
   try {
-    const stmt = db.prepare("SELECT * FROM users WHERE username = ?");
-    const user = stmt.get(username);
+    const result = await query("SELECT * FROM users WHERE username = $1", [
+      username,
+    ]);
+    const user = result.rows[0];
 
     if (!user) {
-      console.log(`Login attempt failed: User '${username}' not found.`);
+      console.log(`Login failed: User '${username}' not found.`);
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const isPasswordMatch = bcrypt.compareSync(password, user.password_hash);
 
     if (isPasswordMatch) {
-      console.log(`Login successful for user: ${user.username}`);
-
-      // Create JWT
       const token = jwt.sign(
         { id: user.id, role: user.role },
         process.env.JWT_SECRET,
         { expiresIn: "8h" }
       );
-
       res.json({
         id: user.id,
         username: user.username,
@@ -74,16 +72,11 @@ export const loginUser = (req, res) => {
         token,
       });
     } else {
-      console.log(
-        `Login attempt failed: Incorrect password for user '${username}'.`
-      );
+      console.log(`Login failed: Wrong password for '${username}'.`);
       return res.status(401).json({ message: "Invalid credentials" });
     }
   } catch (error) {
-    console.error(
-      "An unexpected error occurred during the login process:",
-      error
-    );
+    console.error("Login error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -92,12 +85,20 @@ export const loginUser = (req, res) => {
 // @route   GET /api/auth/me
 // @access  Protected
 
-export const getMe = (req, res) => {
-  const stmt = db.prepare("SELECT id, username, role FROM users WHERE id = ?");
-  const user = stmt.get(req.user.id);
-  if (user) {
-    res.json(user);
-  } else {
-    res.status(404).json({ message: "User not found" });
+export const getMe = async (req, res) => {
+  try {
+    const result = await query(
+      "SELECT id, username, role FROM users WHERE id = $1",
+      [req.user.id]
+    );
+    const user = result.rows[0];
+
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
   }
 };

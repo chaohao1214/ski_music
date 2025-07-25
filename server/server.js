@@ -4,7 +4,6 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import { createServer } from "http";
-import { initDb } from "./src/services/databaseService.js";
 import authRoutes from "./src/api/authRoutes.js";
 import playlistRoutes from "./src/api/playlistRoutes.js";
 import playerRoutes from "./src/api/playerRoutes.js";
@@ -12,9 +11,7 @@ import songRoutes from "./src/api/songsRoutes.js";
 import { Server } from "socket.io";
 import { handleSocketConnections } from "./src/services/socketService.js";
 import { initPlayerStateService } from "./src/services/playerStateService.js";
-
-//initialize database
-initDb();
+import { query } from "./src/services/postgresService.js";
 
 const app = express();
 
@@ -25,6 +22,8 @@ app.use((req, res, next) => {
   req.io = io;
   next();
 });
+
+console.log("Loaded 11DATABASE_URL:", process.env.DATABASE_URL);
 
 //API Routes
 app.use("/api/playlist", playlistRoutes);
@@ -46,6 +45,19 @@ const io = new Server(httpServer, {
 handleSocketConnections(io);
 initPlayerStateService(io);
 
+// Ensure player_state row exists
+async function ensurePlayerStateExists() {
+  const result = await query("SELECT COUNT(*) FROM player_state");
+  if (parseInt(result.rows[0].count) === 0) {
+    await query(
+      "INSERT INTO player_state (status, current_song_id) VALUES ($1, $2)",
+      ["stopped", null]
+    );
+    console.log("✅ Initialized player_state row.");
+  }
+}
+
+ensurePlayerStateExists();
 const PORT = process.env.PORT || 3001;
 
 httpServer.listen(PORT, () => {

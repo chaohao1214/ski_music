@@ -1,17 +1,16 @@
-import db from "../services/databaseService.js";
 import {
   clearCurrentSongIfRemoved,
   getLatestStateAndBroadcast,
   setCurrentSong,
 } from "../services/playerStateService.js";
-
+import { query } from "../services/postgresService.js";
 /**
  * @desc    Add a song to the current playlist
  * @route   POST /api/playlist/add
  * @access  Protected
  */
 
-export const addSongsToPlaylist = (req, res) => {
+export const addSongsToPlaylist = async (req, res) => {
   const { songId } = req.body;
 
   if (!songId) {
@@ -19,37 +18,34 @@ export const addSongsToPlaylist = (req, res) => {
   }
 
   try {
-    const song = db.prepare("SELECT * FROM songs WHERE id = ?").get(songId);
+    const songResult = await query("SELECT * FROM songs WHERE id = $1", [
+      songId,
+    ]);
+    const song = songResult.rows[0];
+
     if (!song) {
       return res.status(404).json({ message: "Song not found in library" });
     }
 
-    let isFirstSong = false;
-    // Use a transaction to safely get the next position and insert the new song
-    const addTransaction = db.transaction(() => {
-      const maxPositionResult = db
-        .prepare(
-          "SELECT COALESCE(MAX(position), 0) as max_pos FROM playlist_items"
-        )
-        .get();
-      const nextPosition = maxPositionResult.max_pos + 1;
-      db.prepare(
-        "INSERT INTO playlist_items (song_id, position) VALUES (?, ?)"
-      ).run(songId, nextPosition);
+    // Get the current max position in the playlist
+    const maxPosResult = await query(
+      "SELECT COALESCE(MAX(position), 0) as max_pos FROM playlist_items"
+    );
+    const nextPosition = maxPosResult.rows[0].max_pos + 1;
 
-      if (nextPosition === 1) {
-        isFirstSong = true;
-      }
-    });
+    // Insert the new song into playlist_items
+    const insertResult = await query(
+      "INSERT INTO playlist_items (song_id, position) VALUES ($1, $2) RETURNING id",
+      [songId, nextPosition]
+    );
 
-    addTransaction();
-
-    if (isFirstSong) {
-      setCurrentSong(songId);
+    // If it's the first song, set it as current
+    if (nextPosition === 1) {
+      await setCurrentSong(songId);
     }
-    getLatestStateAndBroadcast(req.io);
 
-    res.status(201).json(song);
+    getLatestStateAndBroadcast(req.io);
+    res.status(201).json({ ...song, playlistItemId: insertResult.rows[0].id });
   } catch (error) {
     console.error("Error adding song to playlist:", error);
     res.status(500).json({ message: "Error adding song to playlist" });
@@ -62,20 +58,20 @@ export const addSongsToPlaylist = (req, res) => {
  * @access  Protected
  */
 
-export const removeSongFromPlaylist = (req, res) => {
+export const removeSongFromPlaylist = async (req, res) => {
   const { playlistItemId } = req.params;
 
   try {
-    const item = db
-      .prepare("SELECT * FROM playlist_items WHERE id = ?")
-      .get(playlistItemId);
+    const result = await query("SELECT * FROM playlist_items WHERE id = $1", [
+      playlistItemId,
+    ]);
+    const item = result.rows[0];
 
     if (!item) {
       return res.status(404).json({ message: "Playlist item not found." });
     }
 
-    db.prepare("DELETE FROM playlist_items WHERE id = ?").run(playlistItemId);
-
+    await query("DELETE FROM playlist_items WHERE id = $1", [playlistItemId]);
     clearCurrentSongIfRemoved(item.song_id);
 
     getLatestStateAndBroadcast(req.io);
@@ -92,7 +88,7 @@ export const removeSongFromPlaylist = (req, res) => {
  * @access  Protected
  */
 
-export const updatePlaylistOrder = (req, res) => {
+export const updatePlaylistOrder = async (req, res) => {
   const { orderedIds } = req.body;
 
   if (!Array.isArray(orderedIds)) {
@@ -102,19 +98,21 @@ export const updatePlaylistOrder = (req, res) => {
   }
 
   try {
-    const reorderTransaction = db.transaction(() => {
-      const updateStmt = db.prepare(
-        "UPDATE playlist_items SET position = ? WHERE id = ?"
-      );
-      orderedIds.forEach((id, index) => {
-        // The new position is the index in the array (e.g., 0, 1, 2...)
-        updateStmt.run(index + 1, id);
-      });
-    });
-    reorderTransaction();
+    // Use a transaction to ensure consistent update
+    await query("BEGIN");
+
+    for (let i = 0; i < orderedIds.length; i++) {
+      await query("UPDATE playlist_items SET position = $1 WHERE id = $2", [
+        i + 1,
+        orderedIds[i],
+      ]);
+    }
+
+    await query("COMMIT");
     getLatestStateAndBroadcast(req.io);
     res.status(200).json({ message: "Playlist reordered successfully." });
   } catch (error) {
+    await query("ROLLBACK");
     console.error("Error reordering playlist:", error);
     res
       .status(500)

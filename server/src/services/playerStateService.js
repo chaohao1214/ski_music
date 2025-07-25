@@ -1,5 +1,4 @@
-import db from "./databaseService.js";
-
+import { query } from "./postgresService.js";
 const roomName = "music-control-room";
 let io = null; // initialize this form server.js
 
@@ -21,7 +20,7 @@ export function initPlayerStateService(socketIoInstance) {
  * Fetches the latest full state and broadcasts it to all clients in the room.
  */
 
-export function getLatestStateAndBroadcast(ioInstance = io) {
+export async function getLatestStateAndBroadcast(ioInstance = io) {
   if (!ioInstance) {
     console.error(
       "Player state service has not been initialized with io instance."
@@ -30,21 +29,23 @@ export function getLatestStateAndBroadcast(ioInstance = io) {
   }
 
   try {
-    const playlistQuery = `SELECT
+    const result = await query(`
+      SELECT
         s.id, s.title, s.artist, s.duration, s.url,
-        pi.position, pi.id as playlistItemId
+        pi.position, pi.id AS playlistItemId
       FROM playlist_items AS pi
       JOIN songs AS s ON pi.song_id = s.id
-      ORDER BY pi.position ASC;`;
+      ORDER BY pi.position ASC
+    `);
 
-    const playlist = db.prepare(playlistQuery).all();
     const fullState = {
-      playlist: playlist,
-      player: playerState,
+      playlist: result.rows,
+      player: await getLatestState(), // Fetch latest playerState from DB
     };
+
     ioInstance.to(roomName).emit("playlist:update", fullState);
     console.log("Broadcasted latest state to room:", roomName);
-    console.log("🎵 Updated playlist state:", playlist);
+    console.log("🎵 Updated playlist state:", fullState.playlist);
   } catch (error) {
     console.error("Error fetching latest state for broadcast:", error);
   }
@@ -55,67 +56,44 @@ export function getLatestStateAndBroadcast(ioInstance = io) {
  * @returns {object} The current playlist and player state.
  */
 
-export function getLatestState() {
-  try {
-    const playlistQuery = `SELECT
-        s.id, s.title, s.artist, s.duration, s.url,
-        pi.position, pi.id as playlistItemId
-      FROM playlist_items AS pi
-      JOIN songs AS s ON pi.song_id = s.id
-      ORDER BY pi.position ASC;`;
-
-    const playlist = db.prepare(playlistQuery).all();
-    return {
-      playlist,
-      player: playerState,
-    };
-  } catch (error) {
-    console.error("Error fetching latest state:", error);
-    return {
-      playlist: [],
-      player: playerState,
-    };
-  }
-}
+export const getLatestState = async () => {
+  const result = await query("SELECT * FROM player_state LIMIT 1");
+  return result.rows[0];
+};
 
 /**
  * Updates the player's status (e.g., 'playing', 'paused').
  * @param {'playing' | 'paused' | 'stopped'} newStatus
  */
 
-export function setPlayerStatus(newStatus) {
-  playerState.status = newStatus;
-}
+export const setPlayerStatus = async (status) => {
+  await query("UPDATE player_state SET status = $1", [status]);
+};
 
 /**
  * Sets the currently playing song.
  * @param {number | null} songId
  */
 
-export function setCurrentSong(songId) {
-  playerState.currentSongId = songId;
+export const setCurrentSong = async (songId) => {
+  await query("UPDATE player_state SET current_song_id = $1", [songId]);
+};
+
+export async function clearCurrentSongIfRemoved(songId) {
+  const { current_song_id } = await getLatestState();
+  if (current_song_id === songId) {
+    await query(
+      "UPDATE player_state SET current_song_id = NULL, status = 'stopped'"
+    );
+  }
 }
 
-export const clearCurrentSongIfRemoved = (songId) => {
-  if (playerState.currentSongId === songId) {
-    playerState.currentSongId = -1;
-    playerState.status = "stopped";
-  }
+export const getCurrentPlaylist = async () => {
+  const result = await query("SELECT * FROM playlist ORDER BY position ASC");
+  return result.rows;
 };
 
-export const getCurrentPlaylist = () => {
-  try {
-    const playlistQuery = `SELECT
-      s.id, s.title, s.artist, s.duration, s.url,
-      pi.position, pi.id as playlistItemId
-    FROM playlist_items AS pi
-    JOIN songs AS s ON pi.song_id = s.id
-    ORDER BY pi.position ASC;`;
-
-    const playlist = db.prepare(playlistQuery).all();
-    return playlist;
-  } catch (error) {
-    console.error("Error fetching current playlist:", error);
-    return [];
-  }
-};
+export async function getCurrentSongId() {
+  const { current_song_id } = await getLatestState();
+  return current_song_id;
+}
