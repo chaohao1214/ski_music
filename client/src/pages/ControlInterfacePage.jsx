@@ -197,7 +197,7 @@ const ControlInterface = () => {
               overflow: "auto",
             }}
           >
-            {currentPlaylist.map((song) => (
+            {currentPlaylist?.map((song) => (
               <ListItem
                 key={song.playlistItemId}
                 secondaryAction={
