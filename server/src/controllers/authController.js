@@ -1,6 +1,29 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { query } from "../services/postgresService.js";
+
+export const ensureAdminExists = async () => {
+  const username = process.env.ADMIN_USERNAME;
+  const password = process.env.ADMIN_PASSWORD;
+
+  const check = await query("SELECT * FROM users WHERE username = $1", [
+    username,
+  ]);
+  if (check.rows.length === 0) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await query(
+      "INSERT INTO users (username, password, role) VALUES ($1, $2, $3)",
+      [username, hashedPassword, "admin"]
+    );
+    console.log("✅ Admin user created:", username);
+  } else {
+    console.log("✅ Admin user already exists.");
+  }
+};
+
 // @desc register user
 // @route   POST /api/auth/register
 
@@ -57,7 +80,7 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const isPasswordMatch = bcrypt.compareSync(password, user.password_hash);
+    const isPasswordMatch = bcrypt.compareSync(password, user.password);
 
     if (isPasswordMatch) {
       const token = jwt.sign(

@@ -12,6 +12,7 @@ import { Server } from "socket.io";
 import { handleSocketConnections } from "./src/services/socketService.js";
 import { initPlayerStateService } from "./src/services/playerStateService.js";
 import { query } from "./src/services/postgresService.js";
+import { ensureAdminExists } from "./src/controllers/authController.js";
 
 const app = express();
 
@@ -23,7 +24,8 @@ app.use((req, res, next) => {
   next();
 });
 
-console.log("Loaded 11DATABASE_URL:", process.env.DATABASE_URL);
+// create admin user
+ensureAdminExists();
 
 //API Routes
 app.use("/api/playlist", playlistRoutes);
