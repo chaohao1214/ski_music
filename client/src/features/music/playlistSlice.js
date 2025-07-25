@@ -17,7 +17,8 @@ export const addSongToPlaylist = createAsyncThunk(
   "playlist/addSong",
   async (songId, { rejectWithValue }) => {
     try {
-      await apiPost("/api/playlist/add", { songId });
+      const addedSong = await apiPost("/api/playlist/add", { songId });
+      return addedSong;
     } catch (error) {
       return rejectWithValue(error.message || "Failed to add song");
     }
@@ -47,24 +48,62 @@ const playlistSlice = createSlice({
   initialState,
   reducers: {
     updatePlaylistFromSocket(state, action) {
-      state.currentPlaylist = action.payload.playlist;
+      const { playlist } = action.payload || {};
+      if (Array.isArray(playlist)) {
+        const unique = [];
+        const seen = new Set();
+        for (const song of playlist) {
+          if (!seen.has(song.playlistItemId)) {
+            seen.add(song.playlistItemId);
+            unique.push(song);
+          }
+        }
+        state.currentPlaylist = unique;
+      } else {
+        console.warn("Invalid playlist data from socket:", action.payload);
+      }
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchPlaylist.pending, (state) => {
-        state.status = "loading";
-      })
-      .addCase(fetchPlaylist.fulfilled, (state, action) => {
-        state.currentPlaylist = action.payload.playlist;
-      })
-      .addCase(fetchPlaylist.rejected, (state, action) => {
-        state.error = action.payload;
+      .addCase(addSongToPlaylist.fulfilled, (state, action) => {
+        const newSong = action.payload;
+        if (newSong && newSong.playlistItemId) {
+          const exists = state.currentPlaylist.some(
+            (song) => song.playlistItemId === newSong.playlistItemId
+          );
+          if (exists) {
+            state.currentPlaylist.push(newSong);
+          }
+        } else {
+          console.warn("No song returned from addSongToPlaylist");
+        }
       })
       .addCase(addSongToPlaylist.rejected, (state, action) => {
         console.error("Failed to add song:", action.payload);
         state.error = action.payload;
       })
+
+      .addCase(fetchPlaylist.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchPlaylist.fulfilled, (state, action) => {
+        console.log("🎯 fetchPlaylist response:", action.payload);
+        const { playlist } = action.payload || {};
+
+        if (Array.isArray(playlist)) {
+          state.currentPlaylist = playlist;
+        } else {
+          console.warn("Invalid playlist data from fetch:", action.payload);
+          state.currentPlaylist = [];
+        }
+        state.status = "succeeded";
+      })
+
+      .addCase(fetchPlaylist.rejected, (state, action) => {
+        state.error = action.payload;
+      })
+
       .addCase(removeSongFromPlaylist.fulfilled, (state, action) => {
         state.currentPlaylist = state.currentPlaylist.filter(
           (song) => song.playlistItemId !== action.payload

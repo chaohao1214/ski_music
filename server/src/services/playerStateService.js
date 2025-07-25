@@ -1,3 +1,4 @@
+import { getPlayerStateFromDB } from "../controllers/playerController.js";
 import { query } from "./postgresService.js";
 const roomName = "music-control-room";
 let io = null; // initialize this form server.js
@@ -32,7 +33,7 @@ export async function getLatestStateAndBroadcast(ioInstance = io) {
     const result = await query(`
       SELECT
         s.id, s.title, s.artist, s.duration, s.url,
-        pi.position, pi.id AS playlistItemId
+        pi.position, pi.playlist_item_id AS playlistItemId
       FROM playlist_items AS pi
       JOIN songs AS s ON pi.song_id = s.id
       ORDER BY pi.position ASC
@@ -40,7 +41,7 @@ export async function getLatestStateAndBroadcast(ioInstance = io) {
 
     const fullState = {
       playlist: result.rows,
-      player: await getLatestState(), // Fetch latest playerState from DB
+      player: await getPlayerStateFromDB(),
     };
 
     ioInstance.to(roomName).emit("playlist:update", fullState);
@@ -50,16 +51,6 @@ export async function getLatestStateAndBroadcast(ioInstance = io) {
     console.error("Error fetching latest state for broadcast:", error);
   }
 }
-
-/**
- * Returns the latest state without broadcasting.
- * @returns {object} The current playlist and player state.
- */
-
-export const getLatestState = async () => {
-  const result = await query("SELECT * FROM player_state LIMIT 1");
-  return result.rows[0];
-};
 
 /**
  * Updates the player's status (e.g., 'playing', 'paused').
@@ -80,7 +71,7 @@ export const setCurrentSong = async (songId) => {
 };
 
 export async function clearCurrentSongIfRemoved(songId) {
-  const { current_song_id } = await getLatestState();
+  const { current_song_id } = await getPlayerStateFromDB();
   if (current_song_id === songId) {
     await query(
       "UPDATE player_state SET current_song_id = NULL, status = 'stopped'"
@@ -94,6 +85,6 @@ export const getCurrentPlaylist = async () => {
 };
 
 export async function getCurrentSongId() {
-  const { current_song_id } = await getLatestState();
+  const { current_song_id } = await getPlayerStateFromDB();
   return current_song_id;
 }

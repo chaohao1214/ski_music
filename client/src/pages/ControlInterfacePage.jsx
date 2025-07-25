@@ -205,7 +205,7 @@ const ControlInterface = () => {
                     edge="end"
                     aria-label="delete"
                     onClick={() =>
-                      dispatch(removeSongFromPlaylist(song.playlistItemId))
+                      dispatch(removeSongFromPlaylist(song.playlistitemid))
                     }
                   >
                     <DeleteIcon />

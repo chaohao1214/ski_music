@@ -35,17 +35,26 @@ export const addSongsToPlaylist = async (req, res) => {
 
     // Insert the new song into playlist_items
     const insertResult = await query(
-      "INSERT INTO playlist_items (song_id, position) VALUES ($1, $2) RETURNING id",
+      "INSERT INTO playlist_items (song_id, position) VALUES ($1, $2) RETURNING playlist_item_id",
       [songId, nextPosition]
     );
 
+    // const existing = await query(
+    //   "SELECT * FROM playlist_items WHERE song_id = $1",
+    //   [songId]
+    // );
+    // if (existing.rows.length > 0) {
+    //   return res.status(409).json({ message: "Song already in playlist" });
+    // }
     // If it's the first song, set it as current
     if (nextPosition === 1) {
       await setCurrentSong(songId);
     }
 
     getLatestStateAndBroadcast(req.io);
-    res.status(201).json({ ...song, playlistItemId: insertResult.rows[0].id });
+    res
+      .status(201)
+      .json({ ...song, playlistItemId: insertResult.rows[0].playlist_item_id });
   } catch (error) {
     console.error("Error adding song to playlist:", error);
     res.status(500).json({ message: "Error adding song to playlist" });
@@ -62,16 +71,19 @@ export const removeSongFromPlaylist = async (req, res) => {
   const { playlistItemId } = req.params;
 
   try {
-    const result = await query("SELECT * FROM playlist_items WHERE id = $1", [
-      playlistItemId,
-    ]);
+    const result = await query(
+      "SELECT * FROM playlist_items WHERE playlist_item_id = $1",
+      [playlistItemId]
+    );
     const item = result.rows[0];
 
     if (!item) {
       return res.status(404).json({ message: "Playlist item not found." });
     }
 
-    await query("DELETE FROM playlist_items WHERE id = $1", [playlistItemId]);
+    await query("DELETE FROM playlist_items WHERE playlist_item_id = $1", [
+      playlistItemId,
+    ]);
     clearCurrentSongIfRemoved(item.song_id);
 
     getLatestStateAndBroadcast(req.io);

@@ -1,11 +1,16 @@
 import {
   getCurrentPlaylist,
-  getLatestState,
   getLatestStateAndBroadcast,
   setCurrentSong,
   setPlayerStatus,
   getCurrentSongId,
 } from "../services/playerStateService.js";
+import { query } from "../services/postgresService.js";
+
+export const getPlayerStateFromDB = async () => {
+  const result = await query("SELECT * FROM player_state LIMIT 1");
+  return result.rows[0];
+};
 
 /**
  * @desc    Handle player actions like play and pause
@@ -74,7 +79,27 @@ export const handlePlayerAction = (req, res) => {
   res.status(200).json({ message: `Player state updated to ${action}` });
 };
 
-export const getPlayerState = (req, res) => {
-  const state = getLatestState();
-  res.json(state);
+export const getPlayerState = async (req, res) => {
+  try {
+    // 播放队列
+    const playlistResult = await query(`
+      SELECT
+        s.id, s.title, s.artist, s.duration, s.url,
+        pi.position, pi.playlist_item_id AS playlistItemId
+      FROM playlist_items AS pi
+      JOIN songs AS s ON pi.song_id = s.id
+      ORDER BY pi.position ASC
+    `);
+
+    // 当前播放器状态
+    const playerResult = await query("SELECT * FROM player_state LIMIT 1");
+
+    res.json({
+      playlist: playlistResult.rows,
+      player: playerResult.rows[0],
+    });
+  } catch (err) {
+    console.error("Error fetching player state:", err);
+    res.status(500).json({ error: "Failed to fetch player state" });
+  }
 };

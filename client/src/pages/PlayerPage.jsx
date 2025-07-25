@@ -30,7 +30,7 @@ const PlayerPage = () => {
   );
   const playerState = useSelector((state) => state.player.playerState);
   const nowPlaying =
-    currentPlaylist.find((song) => song.id === playerState.currentSongId) ||
+    currentPlaylist?.find((song) => song.id === playerState.currentSongId) ||
     null;
 
   const [audioUnlocked, setAudioUnlocked] = useState(false);
@@ -50,7 +50,15 @@ const PlayerPage = () => {
       if (!audio) return;
 
       if (data.action === "PLAY") {
-        audio.play().catch((e) => console.error("Audio play failed"));
+        if (audioUnlocked && nowPlaying?.url) {
+          audio.src = nowPlaying.url;
+          audio
+            .play()
+            .then(() => console.log("Audio is playing"))
+            .catch((e) => console.error("Audio play failed", e));
+        } else {
+          console.warn("Cannot play audio: audio is locked or url missing");
+        }
       } else if (data.action === "PAUSE") {
         audio.pause();
       }
@@ -165,7 +173,7 @@ const PlayerPage = () => {
             <AudioPlayer
               ref={audioRef}
               src={nowPlaying?.url}
-              autoPlay={playerState.status === "playing"}
+              autoPlay={playerState?.status === "playing"}
               onPlay={() => console.log("Playing")}
               onPause={() => console.log("Paused")}
               onEnded={() => console.log("Ended")}
@@ -185,7 +193,7 @@ const PlayerPage = () => {
               <Typography color="text.secondary">
                 Artist: {nowPlaying?.artist || "Unknown"}
               </Typography>
-              <Typography mt={1}>Status: {playerState.status}</Typography>
+              <Typography mt={1}>Status: {playerState?.status}</Typography>
             </Paper>
           </Box>
 
@@ -200,7 +208,7 @@ const PlayerPage = () => {
             </Typography>
             <Paper sx={{ maxHeight: 500, overflowY: "auto", p: 2 }}>
               <List>
-                {currentPlaylist.length > 0 ? (
+                {currentPlaylist?.length > 0 ? (
                   currentPlaylist.map((song, index) => (
                     <ListItem
                       key={song.playlistItemId}
