@@ -9,6 +9,7 @@ import { useSocket } from "./contexts/SocketContext";
 import PlayerPage from "./pages/PlayerPage";
 import { setPlayerState } from "./features/music/playerSlice";
 import ControlInterface from "./pages/ControlInterfacePage";
+import { updatePlaylistFromSocket } from "./features/music/playlistSlice";
 
 const token = localStorage.getItem("token");
 if (token) {
@@ -29,7 +30,8 @@ function App() {
   useEffect(() => {
     const handlePlaylistUpdate = (newState) => {
       console.log("Received playlist:update event with new state:", newState);
-      dispatch(setPlayerState(newState));
+      // dispatch(setPlayerState(newState));
+      dispatch(updatePlaylistFromSocket(newState));
     };
 
     socket.on("playlist:update", handlePlaylistUpdate);

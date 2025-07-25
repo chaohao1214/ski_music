@@ -53,9 +53,10 @@ const playlistSlice = createSlice({
         const unique = [];
         const seen = new Set();
         for (const song of playlist) {
-          if (!seen.has(song.playlistItemId)) {
-            seen.add(song.playlistItemId);
+          if (!seen.has(song.id)) {
+            seen.add(song.id);
             unique.push(song);
+            console.log("unique", unique);
           }
         }
         state.currentPlaylist = unique;

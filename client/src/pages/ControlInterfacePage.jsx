@@ -52,8 +52,15 @@ const ControlInterface = () => {
   }, [dispatch, socket]);
 
   const handleAddSong = (songId) => {
-    dispatch(addSongToPlaylist(songId));
-    dispatch(fetchPlaylist());
+    const isDuplicate = currentPlaylist.some((song) => song.id === songId);
+    if (isDuplicate) {
+      enqueueSnackbar("The song is already in the playlist", {
+        variant: "info",
+      });
+    } else {
+      dispatch(addSongToPlaylist(songId));
+      dispatch(fetchPlaylist());
+    }
   };
   const handleDeleteSong = (songId) => {
     dispatch(deleteSongFromLibrary(songId));
@@ -199,7 +206,7 @@ const ControlInterface = () => {
           >
             {currentPlaylist?.map((song) => (
               <ListItem
-                key={song.playlistItemId}
+                key={song.playlistitemid}
                 secondaryAction={
                   <IconButton
                     edge="end"
