@@ -22,18 +22,38 @@ import { useNavigate } from "react-router-dom";
 
 const PlayerPage = () => {
   const audioRef = useRef();
+  const nowPlayingRef = useRef(null);
+  const audioUnlockedRef = useRef(false);
+
   const socket = useSocket();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const currentPlaylist = useSelector(
     (state) => state.playlist?.currentPlaylist
   );
   const playerState = useSelector((state) => state.player.playerState);
+
   const nowPlaying =
     currentPlaylist?.find((song) => song.id === playerState.currentSongId) ||
     null;
 
   const [audioUnlocked, setAudioUnlocked] = useState(false);
+
+  console.log("nowPlaying", nowPlaying);
+
+  // keep ref in sync
+  useEffect(() => {
+    nowPlayingRef.current = nowPlaying;
+  }, [nowPlaying]);
+
+  useEffect(() => {
+    audioUnlockedRef.current = audioUnlocked;
+  }, [audioUnlocked]);
+
+  useEffect(() => {
+    dispatch(fetchPlaylist());
+  }, [dispatch]);
 
   useEffect(() => {
     socket.connect();
@@ -43,14 +63,15 @@ const PlayerPage = () => {
       dispatch(updatePlaylistFromSocket(newState));
     };
 
-    // --- Event Handler for receiving playback commands ---
     const handleExecuteCommand = (data) => {
       console.log("Player Client: Received player:execute", data);
       const audio = audioRef.current?.audio?.current;
+      const nowPlaying = nowPlayingRef.current;
+      const unlocked = audioUnlockedRef.current;
       if (!audio) return;
 
       if (data.action === "PLAY") {
-        if (audioUnlocked && nowPlaying?.url) {
+        if (unlocked && nowPlaying?.url) {
           audio.src = nowPlaying.url;
           audio
             .play()
@@ -63,9 +84,7 @@ const PlayerPage = () => {
         audio.pause();
       }
     };
-    // TODO: Handle 'NEXT', 'PREVIOUS', 'SEEK' commands
 
-    // Start listening for events from the server
     socket.on("playlist:update", handlePlaylistUpdate);
     socket.on("player:execute", handleExecuteCommand);
     socket.emit("playlist:get_state");
@@ -77,12 +96,7 @@ const PlayerPage = () => {
     };
   }, [socket]);
 
-  useEffect(() => {
-    dispatch(fetchPlaylist());
-  }, [dispatch]);
-
-  // 📌 Workaround for autoplay restrictions
-  // Browsers block audio.play() unless it's triggered by a user interaction
+  // Unlock audio via user interaction
   useEffect(() => {
     const audio = audioRef.current?.audio?.current;
     if (!audio || !nowPlaying?.url) return;
@@ -117,7 +131,6 @@ const PlayerPage = () => {
         p: { xs: 2, md: 4 },
       }}
     >
-      {" "}
       <Box sx={{ position: "absolute", top: 16, left: 16 }}>
         <Button
           startIcon={<ArrowBackIcon />}
@@ -132,14 +145,10 @@ const PlayerPage = () => {
           }}
         >
           Home
-        </Button>{" "}
+        </Button>
       </Box>
-      <Box
-        sx={{
-          width: "100%",
-          maxWidth: "1400px",
-        }}
-      >
+
+      <Box sx={{ width: "100%", maxWidth: "1400px" }}>
         {!audioUnlocked && (
           <Typography
             variant="body2"
@@ -157,7 +166,7 @@ const PlayerPage = () => {
           alignItems="flex-start"
           gap={{ xs: 4, md: 6 }}
         >
-          {/* Left: Player and Info */}
+          {/* Left Panel: Player */}
           <Box
             flex={1}
             minWidth={{ xs: "100%", md: "50%" }}
@@ -197,7 +206,7 @@ const PlayerPage = () => {
             </Paper>
           </Box>
 
-          {/* Right: Playlist */}
+          {/* Right Panel: Playlist */}
           <Box
             flex={1}
             minWidth={{ xs: "100%", md: "50%" }}

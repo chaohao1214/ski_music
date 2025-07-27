@@ -7,6 +7,7 @@ import {
 } from "../services/playerStateService.js";
 import { query } from "../services/postgresService.js";
 
+const BASE_URL = process.env.BASE_URL || "http://localhost:3001";
 export const getPlayerStateFromDB = async () => {
   const result = await query("SELECT * FROM player_state LIMIT 1");
   return result.rows[0];
@@ -80,26 +81,37 @@ export const handlePlayerAction = (req, res) => {
 };
 
 export const getPlayerState = async (req, res) => {
-  try {
-    // 播放队列
-    const playlistResult = await query(`
-      SELECT
-        s.id, s.title, s.artist, s.duration, s.url,
-        pi.position, pi.playlist_item_id AS playlistItemId
-      FROM playlist_items AS pi
-      JOIN songs AS s ON pi.song_id = s.id
-      ORDER BY pi.position ASC
-    `);
+  const playerResult = await query("SELECT * FROM player_state LIMIT 1");
+  const playlistResult = await query(`
+    SELECT
+      pi.playlist_item_id,
+      pi.song_id,
+      pi.position,
+      s.title,
+      s.artist,
+      s.url,
+      s.duration
+    FROM playlist_items pi
+    JOIN songs s ON pi.song_id = s.id
+    ORDER BY pi.position ASC
+  `);
 
-    // 当前播放器状态
-    const playerResult = await query("SELECT * FROM player_state LIMIT 1");
+  const player = playerResult.rows[0];
 
-    res.json({
-      playlist: playlistResult.rows,
-      player: playerResult.rows[0],
-    });
-  } catch (err) {
-    console.error("Error fetching player state:", err);
-    res.status(500).json({ error: "Failed to fetch player state" });
-  }
+  res.json({
+    player: {
+      id: player.id,
+      currentSongId: player.current_song_id,
+      status: player.status,
+    },
+    playlist: playlistResult.rows.map((row) => ({
+      playlistItemId: row.playlist_item_id,
+      id: row.song_id,
+      title: row.title,
+      artist: row.artist,
+      url: `${BASE_URL}${row.url}`,
+      duration: row.duration,
+      position: row.position,
+    })),
+  });
 };
