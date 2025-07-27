@@ -16,8 +16,17 @@ import { ensureAdminExists } from "./src/controllers/authController.js";
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://ski-music.vercel.app",
+];
 // middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use((req, res, next) => {
   req.io = io;
@@ -38,8 +47,9 @@ app.use("/uploads", express.static("uploads"));
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
