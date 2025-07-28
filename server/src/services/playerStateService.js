@@ -31,13 +31,18 @@ export async function getLatestStateAndBroadcast(ioInstance = io) {
 
   try {
     const result = await query(`
-      SELECT
-        s.id, s.title, s.artist, s.duration, s.url,
-        pi.position, pi.playlist_item_id AS playlistItemId
-      FROM playlist_items AS pi
-      JOIN songs AS s ON pi.song_id = s.id
-      ORDER BY pi.position ASC
-    `);
+  SELECT
+    s.id AS "id",
+    s.title AS "title",
+    s.artist AS "artist",
+    s.duration AS "duration",
+    s.url AS "url",
+    pi.position AS "position",
+    pi.playlist_item_id AS "playlistItemId"
+  FROM playlist_items AS pi
+  JOIN songs AS s ON pi.song_id = s.id
+  ORDER BY pi.position ASC
+`);
 
     const fullState = {
       playlist: result.rows,

@@ -35,7 +35,9 @@ export const addSongsToPlaylist = async (req, res) => {
 
     // Insert the new song into playlist_items
     const insertResult = await query(
-      "INSERT INTO playlist_items (song_id, position) VALUES ($1, $2) RETURNING playlist_item_id",
+      `INSERT INTO playlist_items (song_id, position)
+   VALUES ($1, $2)
+   RETURNING playlist_item_id AS "playlistItemId"`,
       [songId, nextPosition]
     );
 
@@ -54,7 +56,7 @@ export const addSongsToPlaylist = async (req, res) => {
     getLatestStateAndBroadcast(req.io);
     res
       .status(201)
-      .json({ ...song, playlistItemId: insertResult.rows[0].playlist_item_id });
+      .json({ ...song, playlistItemId: insertResult.rows[0].playlistItemId });
   } catch (error) {
     console.error("Error adding song to playlist:", error);
     res.status(500).json({ message: "Error adding song to playlist" });
@@ -114,10 +116,10 @@ export const updatePlaylistOrder = async (req, res) => {
     await query("BEGIN");
 
     for (let i = 0; i < orderedIds.length; i++) {
-      await query("UPDATE playlist_items SET position = $1 WHERE id = $2", [
-        i + 1,
-        orderedIds[i],
-      ]);
+      await query(
+        "UPDATE playlist_items SET position = $1 WHERE playlist_item_id = $2",
+        [i + 1, orderedIds[i]]
+      );
     }
 
     await query("COMMIT");

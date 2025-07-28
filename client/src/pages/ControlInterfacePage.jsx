@@ -206,13 +206,13 @@ const ControlInterface = () => {
           >
             {currentPlaylist?.map((song) => (
               <ListItem
-                key={song.playlistitemid}
+                key={song.playlistItemId}
                 secondaryAction={
                   <IconButton
                     edge="end"
                     aria-label="delete"
                     onClick={() =>
-                      dispatch(removeSongFromPlaylist(song.playlistitemid))
+                      dispatch(removeSongFromPlaylist(song.playlistItemId))
                     }
                   >
                     <DeleteIcon />

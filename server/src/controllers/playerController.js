@@ -81,11 +81,19 @@ export const handlePlayerAction = (req, res) => {
 };
 
 export const getPlayerState = async (req, res) => {
-  const playerResult = await query("SELECT * FROM player_state LIMIT 1");
+  const playerResult = await query(`
+    SELECT
+      id,
+      current_song_id AS "currentSongId",
+      status
+    FROM player_state
+    LIMIT 1
+  `);
+
   const playlistResult = await query(`
     SELECT
-      pi.playlist_item_id,
-      pi.song_id,
+      pi.playlist_item_id AS "playlistItemId",
+      pi.song_id AS "id",
       pi.position,
       s.title,
       s.artist,
@@ -99,19 +107,10 @@ export const getPlayerState = async (req, res) => {
   const player = playerResult.rows[0];
 
   res.json({
-    player: {
-      id: player.id,
-      currentSongId: player.current_song_id,
-      status: player.status,
-    },
+    player,
     playlist: playlistResult.rows.map((row) => ({
-      playlistItemId: row.playlist_item_id,
-      id: row.song_id,
-      title: row.title,
-      artist: row.artist,
+      ...row,
       url: `${BASE_URL}${row.url}`,
-      duration: row.duration,
-      position: row.position,
     })),
   });
 };
