@@ -175,9 +175,6 @@ const PlayerPage = () => {
             <Typography variant="h4" gutterBottom>
               Music Player
             </Typography>
-            <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-              Real-time music control interface
-            </Typography>
 
             <AudioPlayer
               ref={audioRef}

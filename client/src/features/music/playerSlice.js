@@ -19,13 +19,9 @@ const playerSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(fetchPlaylist.fulfilled, (state, action) => {
       const player = action.payload.player;
-      console.log("playerplayer", player);
+      console.log("player", player);
 
-      state.playerState = {
-        id: player.id,
-        currentSongId: player.current_song_id,
-        status: player.status,
-      };
+      state.playerState = player;
     });
   },
 });
