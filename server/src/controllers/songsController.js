@@ -1,6 +1,10 @@
 import { query } from "../services/postgresService.js";
 import path from "path";
 import fs from "fs";
+import dotenv from "dotenv";
+
+dotenv.config();
+const BASE_URL = process.env.BASE_URL || "http://localhost:3001";
 // @desc    Get all songs from the library
 // @route   GET /api/songs
 
@@ -48,7 +52,7 @@ export const addUploadedSong = async (req, res) => {
         file.originalname,
         path.extname(file.originalname)
       );
-      const url = `http://localhost:3001/uploads/${file.filename}`;
+      const url = `${BASE_URL}/uploads/${file.filename}`;
 
       const result = await query(
         "INSERT INTO songs (title, filename, url, artist) VALUES ($1, $2, $3, $4) RETURNING id",
