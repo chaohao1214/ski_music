@@ -6,8 +6,9 @@ import {
   getCurrentSongId,
 } from "../services/playerStateService.js";
 import { query } from "../services/postgresService.js";
+import dotenv from "dotenv";
 
-const BASE_URL = process.env.BASE_URL || "http://localhost:3001";
+dotenv.config();
 export const getPlayerStateFromDB = async () => {
   const result = await query("SELECT * FROM player_state LIMIT 1");
   return result.rows[0];
@@ -81,36 +82,44 @@ export const handlePlayerAction = (req, res) => {
 };
 
 export const getPlayerState = async (req, res) => {
-  const playerResult = await query(`
-    SELECT
-      id,
-      current_song_id AS "currentSongId",
-      status
-    FROM player_state
-    LIMIT 1
-  `);
+  try {
+    const playerResult = await query(`
+      SELECT
+        id,
+        current_song_id AS "currentSongId",
+        status
+      FROM player_state
+      LIMIT 1
+    `);
 
-  const playlistResult = await query(`
-    SELECT
-      pi.playlist_item_id AS "playlistItemId",
-      pi.song_id AS "id",
-      pi.position,
-      s.title,
-      s.artist,
-      s.url,
-      s.duration
-    FROM playlist_items pi
-    JOIN songs s ON pi.song_id = s.id
-    ORDER BY pi.position ASC
-  `);
+    const playlistResult = await query(`
+      SELECT
+        pi.playlist_item_id AS "playlistItemId",
+        pi.song_id AS "id",
+        pi.position,
+        s.title,
+        s.artist,
+        s.url,
+        s.duration
+      FROM playlist_items pi
+      JOIN songs s ON pi.song_id = s.id
+      ORDER BY pi.position ASC
+    `);
 
-  const player = playerResult.rows[0];
+    const baseUrl =
+      process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
 
-  res.json({
-    player,
-    playlist: playlistResult.rows.map((row) => ({
-      ...row,
-      url: row.url,
-    })),
-  });
+    const player = playerResult.rows[0];
+
+    res.json({
+      player,
+      playlist: playlistResult.rows.map((row) => ({
+        ...row,
+        url: `${baseUrl}/uploads/${row.url}`,
+      })),
+    });
+  } catch (error) {
+    console.error("PlayerState error:", error);
+    res.status(500).json({ error: "Failed to fetch player state" });
+  }
 };

@@ -52,22 +52,24 @@ export const addUploadedSong = async (req, res) => {
         file.originalname,
         path.extname(file.originalname)
       );
-      const url = `${BASE_URL}/uploads/${file.filename}`;
+      // const url = `${BASE_URL}/uploads/${file.filename}`;
+
+      const filename = file.filename;
 
       const result = await query(
         "INSERT INTO songs (title, filename, url, artist) VALUES ($1, $2, $3, $4) RETURNING id",
-        [title, file.filename, url, "Unknown"]
+        [title, filename, filename, "Unknown"] // 只存 filename 为 url
       );
 
       insertedSongs.push({
         id: result.rows[0].id,
         title,
         artist: "Unknown",
-        url,
+        filename,
       });
     }
 
-    res.status(201).json({ songs: insertedSongs });
+    res.status(201).json({ success: true, songs: insertedSongs });
   } catch (error) {
     console.error("Upload failed:", error);
     res.status(500).json({ message: "Failed to upload songs" });
