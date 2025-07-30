@@ -9,10 +9,12 @@ import {
   Typography,
 } from "@mui/material";
 import { useSocket } from "../contexts/SocketContext";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchPlaylist,
+  setPlaylistState,
+  updatePlayerAndPlaylist,
   updatePlaylistFromSocket,
 } from "../features/music/playlistSlice";
 import AudioPlayer from "react-h5-audio-player";
@@ -32,16 +34,17 @@ const PlayerPage = () => {
   const currentPlaylist = useSelector(
     (state) => state.playlist?.currentPlaylist
   );
-  const playerState = useSelector((state) => state.player.playerState);
+  const playerState = useSelector((state) => state.playlist?.playerState);
 
-  const nowPlaying =
-    currentPlaylist?.find((song) => song.id === playerState.currentSongId) ||
-    null;
+  const nowPlaying = useMemo(() => {
+    if (!currentPlaylist?.length) return null;
+    return (
+      currentPlaylist.find((song) => song.id === playerState.currentSongId) ||
+      null
+    );
+  }, [currentPlaylist, playerState.currentSongId]);
 
   const [audioUnlocked, setAudioUnlocked] = useState(false);
-
-  console.log("nowPlaying", nowPlaying);
-
   // keep ref in sync
   useEffect(() => {
     nowPlayingRef.current = nowPlaying;
@@ -60,7 +63,7 @@ const PlayerPage = () => {
 
     const handlePlaylistUpdate = (newState) => {
       console.log("Player Client: Received playlist:update", newState);
-      dispatch(updatePlaylistFromSocket(newState));
+      dispatch(updatePlayerAndPlaylist(newState));
     };
 
     const handleExecuteCommand = (data) => {
@@ -98,27 +101,47 @@ const PlayerPage = () => {
 
   // Unlock audio via user interaction
   useEffect(() => {
-    const audio = audioRef.current?.audio?.current;
-    if (!audio || !nowPlaying?.url) return;
+    if (audioUnlocked) return;
 
     const unlockAudio = () => {
+      const audio = audioRef.current?.audio?.current;
+      const url = nowPlayingRef.current?.url;
+      if (!audio || !url) return;
+
       audio.muted = true;
+      audio.src = url;
       audio
         .play()
         .then(() => {
           audio.pause();
           audio.muted = false;
           setAudioUnlocked(true);
+          window.removeEventListener("click", unlockAudio);
         })
-        .catch(() => {});
-      window.removeEventListener("click", unlockAudio);
+        .catch((err) => {
+          console.warn("Unlock failed", err);
+        });
     };
 
     window.addEventListener("click", unlockAudio);
     return () => {
       window.removeEventListener("click", unlockAudio);
     };
-  }, [nowPlaying?.url]);
+  }, [audioUnlocked]);
+  useEffect(() => {
+    const unlock = () => {
+      const audio = new Audio();
+      audio.muted = true;
+      audio.play().then(() => {
+        audio.pause();
+        audio.muted = false;
+      });
+      window.removeEventListener("click", unlock);
+    };
+
+    window.addEventListener("click", unlock);
+    return () => window.removeEventListener("click", unlock);
+  }, []);
 
   return (
     <Box

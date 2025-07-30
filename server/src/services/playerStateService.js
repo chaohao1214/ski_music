@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+
+dotenv.config();
 import { getPlayerStateFromDB } from "../controllers/playerController.js";
 import { query } from "./postgresService.js";
 const roomName = "music-control-room";
@@ -31,27 +34,39 @@ export async function getLatestStateAndBroadcast(ioInstance = io) {
 
   try {
     const result = await query(`
-  SELECT
-    s.id AS "id",
-    s.title AS "title",
-    s.artist AS "artist",
-    s.duration AS "duration",
-    s.url AS "url",
-    pi.position AS "position",
-    pi.playlist_item_id AS "playlistItemId"
-  FROM playlist_items AS pi
-  JOIN songs AS s ON pi.song_id = s.id
-  ORDER BY pi.position ASC
-`);
+      SELECT
+        s.id AS "id",
+        s.title AS "title",
+        s.artist AS "artist",
+        s.duration AS "duration",
+        s.url AS "url",
+        pi.position AS "position",
+        pi.playlist_item_id AS "playlistItemId"
+      FROM playlist_items AS pi
+      JOIN songs AS s ON pi.song_id = s.id
+      ORDER BY pi.position ASC
+    `);
+
+    //  BASE_URL + /uploads/
+    const baseUrl =
+      process.env.BASE_URL?.trim() ||
+      `http://localhost:${process.env.PORT || 3001}`;
+    console.log("🧩 BASE_URL from env:", process.env.BASE_URL);
+    console.log("🌍 Computed baseUrl:", baseUrl);
+
+    const playlist = result.rows.map((row) => ({
+      ...row,
+      url: `${baseUrl}/uploads/${row.url}`,
+    }));
 
     const fullState = {
-      playlist: result.rows,
+      playlist,
       player: await getPlayerStateFromDB(),
     };
 
     ioInstance.to(roomName).emit("playlist:update", fullState);
     console.log("Broadcasted latest state to room:", roomName);
-    console.log("🎵 Updated playlist state:", fullState.playlist);
+    console.log("🎵 Updated playlist state:", playlist);
   } catch (error) {
     console.error("Error fetching latest state for broadcast:", error);
   }

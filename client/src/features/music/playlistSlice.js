@@ -39,10 +39,11 @@ export const removeSongFromPlaylist = createAsyncThunk(
 
 const initialState = {
   currentPlaylist: [],
-  status: "idle",
-  error: null,
+  playerState: {
+    currentSongId: null,
+    status: "stopped",
+  },
 };
-
 const playlistSlice = createSlice({
   name: "playlist",
   initialState,
@@ -62,6 +63,14 @@ const playlistSlice = createSlice({
       } else {
         console.warn("Invalid playlist data from socket:", action.payload);
       }
+    },
+    setPlayerState(state, action) {
+      state.playerState = action.payload;
+    },
+    updatePlayerAndPlaylist(state, action) {
+      const { playlist, player } = action.payload;
+      state.currentPlaylist = playlist;
+      state.playerState = player;
     },
   },
   extraReducers: (builder) => {
@@ -112,7 +121,11 @@ const playlistSlice = createSlice({
   },
 });
 
-export const { setPlaylistState, updatePlaylistFromSocket } =
-  playlistSlice.actions;
+export const {
+  setPlaylistState,
+  updatePlaylistFromSocket,
+  setPlayerState,
+  updatePlayerAndPlaylist,
+} = playlistSlice.actions;
 
 export default playlistSlice.reducer;

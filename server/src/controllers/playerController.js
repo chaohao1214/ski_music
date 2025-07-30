@@ -114,7 +114,7 @@ export const getPlayerState = async (req, res) => {
     `);
 
     const baseUrl =
-      process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+      process.env.BASE_URL.trim() || `${req.protocol}://${req.get("host")}`;
 
     const player = playerResult.rows[0];
 

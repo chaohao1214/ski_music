@@ -3,7 +3,7 @@ import { fetchPlaylist } from "./playlistSlice";
 
 const initialState = {
   playerState: {
-    currentSongId: -1,
+    currentSongId: null,
     status: "stopped",
   },
 };
