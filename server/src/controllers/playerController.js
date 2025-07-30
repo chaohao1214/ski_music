@@ -110,7 +110,7 @@ export const getPlayerState = async (req, res) => {
     player,
     playlist: playlistResult.rows.map((row) => ({
       ...row,
-      url: `${BASE_URL}${row.url}`,
+      url: row.url,
     })),
   });
 };
