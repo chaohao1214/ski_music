@@ -10,7 +10,14 @@ import dotenv from "dotenv";
 
 dotenv.config();
 export const getPlayerStateFromDB = async () => {
-  const result = await query("SELECT * FROM player_state LIMIT 1");
+  const result = await query(`
+    SELECT
+      id,
+      current_song_id AS "currentSongId",
+      status
+    FROM player_state
+    LIMIT 1
+  `);
   return result.rows[0];
 };
 

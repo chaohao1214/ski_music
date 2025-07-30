@@ -76,8 +76,8 @@ export const setCurrentSong = async (songId) => {
 };
 
 export async function clearCurrentSongIfRemoved(songId) {
-  const { current_song_id } = await getPlayerStateFromDB();
-  if (current_song_id === songId) {
+  const { currentSongId } = await getPlayerStateFromDB();
+  if (currentSongId === songId) {
     await query(
       "UPDATE player_state SET current_song_id = NULL, status = 'stopped'"
     );
@@ -90,6 +90,6 @@ export const getCurrentPlaylist = async () => {
 };
 
 export async function getCurrentSongId() {
-  const { current_song_id } = await getPlayerStateFromDB();
-  return current_song_id;
+  const { currentSongId } = await getPlayerStateFromDB();
+  return currentSongId;
 }
