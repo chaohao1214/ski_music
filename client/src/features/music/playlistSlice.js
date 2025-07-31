@@ -98,13 +98,22 @@ const playlistSlice = createSlice({
       })
       .addCase(fetchPlaylist.fulfilled, (state, action) => {
         console.log("🎯 fetchPlaylist response:", action.payload);
-        const { playlist } = action.payload || {};
+        const { playlist, player } = action.payload || {};
 
         if (Array.isArray(playlist)) {
           state.currentPlaylist = playlist;
         } else {
           console.warn("Invalid playlist data from fetch:", action.payload);
           state.currentPlaylist = [];
+        }
+        if (player) {
+          state.playerState = player;
+        } else {
+          console.warn("Invalid player data from fetch:", action.payload);
+          state.playerState = {
+            currentSongId: null,
+            status: "stopped",
+          };
         }
         state.status = "succeeded";
       })

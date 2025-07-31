@@ -36,13 +36,9 @@ const PlayerPage = () => {
   );
   const playerState = useSelector((state) => state.playlist?.playerState);
 
-  const nowPlaying = useMemo(() => {
-    if (!currentPlaylist?.length) return null;
-    return (
-      currentPlaylist.find((song) => song.id === playerState.currentSongId) ||
-      null
-    );
-  }, [currentPlaylist, playerState.currentSongId]);
+  const nowPlaying =
+    currentPlaylist.find((song) => song.id === playerState.currentSongId) ||
+    null;
 
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   // keep ref in sync
@@ -53,6 +49,10 @@ const PlayerPage = () => {
   useEffect(() => {
     audioUnlockedRef.current = audioUnlocked;
   }, [audioUnlocked]);
+
+  console.log("nowPlaying", nowPlaying);
+  console.log("playerState", playerState);
+  console.log("currentPlaylist", currentPlaylist);
 
   useEffect(() => {
     dispatch(fetchPlaylist());
@@ -128,20 +128,6 @@ const PlayerPage = () => {
       window.removeEventListener("click", unlockAudio);
     };
   }, [audioUnlocked]);
-  useEffect(() => {
-    const unlock = () => {
-      const audio = new Audio();
-      audio.muted = true;
-      audio.play().then(() => {
-        audio.pause();
-        audio.muted = false;
-      });
-      window.removeEventListener("click", unlock);
-    };
-
-    window.addEventListener("click", unlock);
-    return () => window.removeEventListener("click", unlock);
-  }, []);
 
   return (
     <Box
