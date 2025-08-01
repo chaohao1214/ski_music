@@ -11,9 +11,11 @@ const supabase = createClient(
 
 const upload = multer({ dest: "temp/" });
 
-export const uploadMiddleware = upload.array("files", 10);
+export const uploadMiddleware = upload.array("songs", 10);
 
 export const uploadSongToSupabase = async (req, res) => {
+  console.log("Incoming files:", req.files);
+  console.log("Field names:", req.body);
   const files = req.files;
   if (!files || files.length === 0) {
     return res.status(400).json({ error: "No files uploaded" });
