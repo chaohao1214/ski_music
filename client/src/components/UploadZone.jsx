@@ -21,7 +21,12 @@ const UploadZone = () => {
     mp3Files.forEach((file) => formData.append("songs", file));
     setUploading(true);
 
-    apiUpload("/api/songs/upload", formData)
+    const useSupabase = import.meta.env.VITE_USE_SUPABASE === "true";
+    const uploadUrl = useSupabase
+      ? "/api/songs/upload-supabase"
+      : "/api/songs/upload";
+
+    apiUpload(uploadUrl, formData)
       .then((result) => {
         console.log("✅ Uploaded:", result);
         enqueueSnackbar("Songs uploaded successfully!", { variant: "success" });

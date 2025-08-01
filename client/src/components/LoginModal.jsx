@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser, closeLoginModal } from "../features/auth/authSlice";
+import { loginUser, closeLoginModal, getMe } from "../features/auth/authSlice";
 import imageIcon from "../assets/undraw_happy-music_na4p.svg";
 import {
   Dialog,
@@ -38,12 +38,17 @@ const LoginModal = () => {
       dispatch(loginUser({ username, password }))
         .unwrap()
         .then(() => {
-          handleClose();
-          navigate("/remote");
+          dispatch(getMe())
+            .unwrap()
+            .then(() => {
+              handleClose();
+              navigate("/remote");
+            });
         })
         .catch((err) => console.error("Failed to login:", err));
     }
   };
+
   return (
     <Dialog
       open={isLoginModalOpen}

@@ -62,10 +62,15 @@ const ControlInterface = () => {
       dispatch(fetchPlaylist());
     }
   };
-  const handleDeleteSong = (songId) => {
-    dispatch(deleteSongFromLibrary(songId));
-    enqueueSnackbar("Deleted successfully!", { variant: "success" });
-    dispatch(fetchSongLibrary());
+  const handleDeleteSong = async (songId) => {
+    try {
+      await dispatch(deleteSongFromLibrary(songId)).unwrap();
+      enqueueSnackbar("Deleted successfully!", { variant: "success" });
+      await dispatch(fetchSongLibrary()).unwrap();
+    } catch (err) {
+      console.error("❌ Delete failed:", err);
+      enqueueSnackbar("Failed to delete", { variant: "error" });
+    }
   };
 
   const handlePlay = () => {

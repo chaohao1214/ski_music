@@ -65,10 +65,8 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.status = "succeeded";
-        const { id, username, token, role } = action.payload;
-        state.user = { id, username, role };
+        const { token } = action.payload;
         state.token = token;
-        state.isAuthenticated = true;
         state.isLoginModalOpen = false;
 
         //persist token and set it for future api call
@@ -81,9 +79,9 @@ const authSlice = createSlice({
         localStorage.removeItem("token");
       })
       .addCase(getMe.fulfilled, (state, action) => {
-        state.isAuthenticated = true;
         state.user = action.payload;
         state.status = "succeeded";
+        state.isAuthenticated = true;
       })
       .addCase(getMe.rejected, (state, action) => {
         state.status = "failed";

@@ -8,7 +8,6 @@ import {
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { logout, openLoginModal } from "../features/auth/authSlice";
-import { useEffect, useState } from "react";
 import LoginModal from "../components/LoginModal";
 
 import { useNavigate } from "react-router-dom";
