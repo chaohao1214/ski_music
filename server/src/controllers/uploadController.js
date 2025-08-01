@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
-import { query } from "../services/postgresService";
+import { query } from "../services/postgresService.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
