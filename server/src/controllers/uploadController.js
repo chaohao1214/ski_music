@@ -11,34 +11,59 @@ const supabase = createClient(
 
 const upload = multer({ dest: "temp/" });
 
-export const uploadMiddleware = upload.single("file");
+export const uploadMiddleware = upload.array("files", 10);
 
 export const uploadSongToSupabase = async (req, res) => {
-  const file = req.file;
-  if (!file) return res.status(400).json({ error: "No file uploaded" });
+  const files = req.files;
+  if (!files || files.length === 0) {
+    return res.status(400).json({ error: "No files uploaded" });
+  }
 
-  const filename = `${Date.now()}_${file.originalname}`;
-  const filePath = path.resolve(file.path);
+  const results = [];
 
-  const { data, error } = await supabase.storage
-    .from(process.env.SUPABASE_BUCKET)
-    .upload(filename, await fs.readFile(filePath), {
-      contentType: "audio/mpeg",
-      upsert: false,
-    });
+  for (const file of files) {
+    try {
+      const filename = `${Date.now()}_${file.originalname}`;
+      const filePath = path.resolve(file.path);
 
-  await fs.unlink(filePath);
+      const { error } = await supabase.storage
+        .from(process.env.SUPABASE_BUCKET)
+        .upload(filename, await fs.readFile(filePath), {
+          contentType: "audio/mpeg",
+          upsert: false,
+        });
 
-  if (error) return res.status(500).json({ error: error.message });
+      // delete tmp files
+      await fs.unlink(filePath);
 
-  const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/${
-    process.env.SUPABASE_BUCKET
-  }/${encodeURIComponent(filename)}`;
+      if (error) {
+        console.error(`❌ Upload failed: ${filename}`, error.message);
+        results.push({ filename, status: "error", error: error.message });
+        continue; // skip illeagl files
+      }
 
-  await query(
-    `INSERT INTO songs (title, artist, url, filename) VALUES ($1, $2, $3, $4)`,
-    [file.originalname, "Unknown", publicUrl, filename]
-  );
+      const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/${
+        process.env.SUPABASE_BUCKET
+      }/${encodeURIComponent(filename)}`;
 
-  return res.json({ message: "Uploaded", url: publicUrl });
+      await query(
+        `INSERT INTO songs (title, artist, url, filename) VALUES ($1, $2, $3, $4)`,
+        [file.originalname, "Unknown", publicUrl, filename]
+      );
+
+      results.push({ filename, url: publicUrl, status: "success" });
+    } catch (e) {
+      console.error(
+        `❌ Unexpected error uploading ${file.originalname}:`,
+        e.message
+      );
+      results.push({
+        filename: file.originalname,
+        status: "error",
+        error: e.message,
+      });
+    }
+  }
+
+  return res.json({ message: "Upload completed", results });
 };

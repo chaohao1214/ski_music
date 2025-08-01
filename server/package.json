@@ -6,7 +6,7 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.js"
+    "dev": "kill-port 3001 && nodemon server.js"
   },
   "keywords": [],
   "author": "",
@@ -23,5 +23,8 @@
     "pg": "^8.16.3",
     "socket.io": "^4.8.1",
     "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "kill-port": "^2.0.1"
   }
 }
