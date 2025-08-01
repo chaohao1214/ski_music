@@ -47,16 +47,11 @@ export async function getLatestStateAndBroadcast(ioInstance = io) {
       ORDER BY pi.position ASC
     `);
 
-    //  BASE_URL + /uploads/
-    const baseUrl =
-      process.env.BASE_URL?.trim() ||
-      `http://localhost:${process.env.PORT || 3001}`;
-    console.log("🧩 BASE_URL from env:", process.env.BASE_URL);
-    console.log("🌍 Computed baseUrl:", baseUrl);
-
     const playlist = result.rows.map((row) => ({
       ...row,
-      url: `${baseUrl}/uploads/${row.url}`,
+      url: row.url.startsWith("https://")
+        ? row.url
+        : `http://localhost:3001/uploads/${row.url}`,
     }));
 
     const fullState = {
