@@ -1,21 +1,24 @@
+import { SOCKET_EVENTS } from "../constans/socketEvent.js";
 import { getLatestStateAndBroadcast } from "./playerStateService.js";
 
 export const handleSocketConnections = (io) => {
-  const roomName = "music-control-room";
   io.on("connection", (socket) => {
     console.log(`Client connected: ${socket.id}`);
-    socket.join(roomName);
+    socket.join(SOCKET_EVENTS.ROOM_NAME);
 
     getLatestStateAndBroadcast(io);
-    socket.on("player:command", (data) => {
+    socket.on(SOCKET_EVENTS.COMMAND, (data) => {
       console.log("Received command from controller:", data);
-      socket.to(roomName).emit("player:execute", data);
+      socket.to(SOCKET_EVENTS.ROOM_NAME).emit(SOCKET_EVENTS.STATE_UPDATE, data);
     });
     // Listen for state updates from a controller
     socket.on("playlist:state_change", (data) => {
       console.log("Received state change from controller:", data);
       // Broadcast the new state to all clients
-      io.to(roomName).emit("playlist:update", data.newPlaylist);
+      io.to(SOCKET_EVENTS.ROOM_NAME).emit(
+        SOCKET_EVENTS.STATE_UPDATE,
+        data.newPlaylist
+      );
     });
 
     socket.on("disconnect", () => {

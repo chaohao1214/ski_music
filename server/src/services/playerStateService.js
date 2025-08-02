@@ -3,7 +3,8 @@ import dotenv from "dotenv";
 dotenv.config();
 import { getPlayerStateFromDB } from "../controllers/playerController.js";
 import { query } from "./postgresService.js";
-const roomName = "music-control-room";
+import { SOCKET_EVENTS } from "../constans/socketEvent.js";
+
 let io = null; // initialize this form server.js
 
 let playerState = {
@@ -59,8 +60,9 @@ export async function getLatestStateAndBroadcast(ioInstance = io) {
       player: await getPlayerStateFromDB(),
     };
 
-    ioInstance.to(roomName).emit("playlist:update", fullState);
-    console.log("Broadcasted latest state to room:", roomName);
+    ioInstance
+      .to(SOCKET_EVENTS.ROOM_NAME)
+      .emit(SOCKET_EVENTS.STATE_UPDATE, fullState);
     console.log("🎵 Updated playlist state:", playlist);
   } catch (error) {
     console.error("Error fetching latest state for broadcast:", error);
@@ -95,7 +97,14 @@ export async function clearCurrentSongIfRemoved(songId) {
 }
 
 export const getCurrentPlaylist = async () => {
-  const result = await query("SELECT * FROM playlist ORDER BY position ASC");
+  const result = await query(`
+    SELECT 
+      playlist_item_id AS "playlistItemId", 
+      song_id AS "songId", 
+      position 
+    FROM playlist_items 
+    ORDER BY position ASC
+  `);
   return result.rows;
 };
 

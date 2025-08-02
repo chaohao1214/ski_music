@@ -8,6 +8,6 @@ export const store = configureStore({
     auth: authReducer,
     songs: songLibraryReducer,
     playlist: playlistReducer,
-    // player: playerReducer,
+    player: playerReducer,
   },
 });

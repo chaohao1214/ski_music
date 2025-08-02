@@ -96,7 +96,6 @@ export const deleteSong = async (req, res) => {
     const { data, error: supabaseError } = await supabase.storage
       .from("songs")
       .remove([song.filename]);
-    console.log("Supabase delete result:", { data, supabaseError });
 
     if (supabaseError) {
       console.error("Supabase file delete error:", supabaseError.message);

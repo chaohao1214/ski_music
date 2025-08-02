@@ -9,13 +9,11 @@ import {
   Typography,
 } from "@mui/material";
 import { useSocket } from "../contexts/SocketContext";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchPlaylist,
-  setPlaylistState,
   updatePlayerAndPlaylist,
-  updatePlaylistFromSocket,
 } from "../features/music/playlistSlice";
 import AudioPlayer from "react-h5-audio-player";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -191,6 +189,8 @@ const PlayerPage = () => {
               autoPlay={playerState?.status === "playing"}
               onPlay={() => console.log("Playing")}
               onPause={() => console.log("Paused")}
+              onClickNext={() => console.log("Next")}
+              onClickPrevious={() => console.log("Prev")}
               onEnded={() => console.log("Ended")}
               style={{
                 borderRadius: 8,

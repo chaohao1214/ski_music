@@ -4,8 +4,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  Container,
-  Grid,
   IconButton,
   List,
   ListItem,
@@ -14,7 +12,6 @@ import {
   Typography,
 } from "@mui/material";
 import { logout } from "../features/auth/authSlice";
-
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useSocket } from "../contexts/SocketContext";
@@ -24,6 +21,7 @@ import {
   deleteSongFromLibrary,
   fetchSongLibrary,
 } from "../features/music/songLibrarySlice";
+import { sendPlayerCommand } from "../features/music/playerSlice";
 import {
   addSongToPlaylist,
   fetchPlaylist,
@@ -79,18 +77,19 @@ const ControlInterface = () => {
       return;
     }
 
-    socket.emit("player:command", {
-      action: "PLAY",
-      songId: currentPlaylist[0].id,
-    });
+    dispatch(sendPlayerCommand({ action: "PLAY" }));
   };
 
   const handlePause = () => {
-    socket.emit("player:command", { action: "PAUSE" });
+    dispatch(sendPlayerCommand({ action: "PAUSE" }));
   };
 
   const handleNext = () => {
-    socket.emit("play:command", { action: "NEXT" });
+    dispatch(sendPlayerCommand({ action: "NEXT" }));
+  };
+
+  const handlePrev = () => {
+    dispatch(sendPlayerCommand({ action: "PREV" }));
   };
   const handleLogout = () => {
     dispatch(logout());
@@ -141,6 +140,9 @@ const ControlInterface = () => {
             </Button>
             <Button sx={{ mr: 1 }} variant="contained" onClick={handleNext}>
               Next
+            </Button>
+            <Button sx={{ mr: 1 }} variant="contained" onClick={handlePrev}>
+              Prev
             </Button>
           </Box>
 

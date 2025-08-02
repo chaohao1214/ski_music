@@ -1,3 +1,4 @@
+import { SOCKET_EVENTS } from "../constans/socketEvent.js";
 import {
   getCurrentPlaylist,
   getLatestStateAndBroadcast,
@@ -6,6 +7,7 @@ import {
   getCurrentSongId,
 } from "../services/playerStateService.js";
 import { query } from "../services/postgresService.js";
+
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -21,13 +23,48 @@ export const getPlayerStateFromDB = async () => {
   return result.rows[0];
 };
 
+export const changeTrack = async (direction, io) => {
+  const playlist = await getCurrentPlaylist();
+  const currentSongId = await getCurrentSongId();
+
+  if (playlist.length === 0) {
+    return { error: "Playlist is empty" };
+  }
+
+  const currentIndex = playlist.findIndex(
+    (item) => item.songId === currentSongId
+  );
+  if (currentIndex === -1) {
+    return { error: "Current song not found" };
+  }
+  let newIndex;
+  if (direction === "next") {
+    newIndex = (currentIndex + 1) % playlist.length;
+  } else if (direction === "prev") {
+    newIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+  } else {
+    return { error: "Invalid direction" };
+  }
+
+  const newSong = playlist[newIndex];
+  setCurrentSong(newSong.songId);
+  setPlayerStatus("playing");
+
+  io.to(SOCKET_EVENTS.ROOM_NAME).emit(SOCKET_EVENTS.EXECUTE, {
+    action: "PLAY",
+    songId: newSong.songId,
+  });
+
+  getLatestStateAndBroadcast(io);
+  return { success: true };
+};
+
 /**
  * @desc    Handle player actions like play and pause
  * @route   POST /api/player/action
  */
-export const handlePlayerAction = (req, res) => {
+export const handlePlayerAction = async (req, res) => {
   const { action, songId } = req.body;
-
   if (!action) {
     return res.status(400).json({ message: "Action is required" });
   }
@@ -36,18 +73,24 @@ export const handlePlayerAction = (req, res) => {
     case "play":
       let selectedSongId = songId;
       if (!selectedSongId) {
-        const playlist = getCurrentPlaylist();
-        if (playlist.length === 0) {
-          return res
-            .status(400)
-            .json({ message: "Playlist is empty. Cannot play." });
+        const { currentSongId } = await getPlayerStateFromDB();
+
+        if (currentSongId) {
+          selectedSongId = currentSongId;
+        } else {
+          const playlist = await getCurrentPlaylist();
+          if (playlist.length === 0) {
+            return res
+              .status(400)
+              .json({ message: "Playlist is empty. Cannot play." });
+          }
+          selectedSongId = playlist[0].songId; // fallback to first
         }
-        selectedSongId = playlist[0].id;
       }
       setPlayerStatus("playing");
       setCurrentSong(selectedSongId);
 
-      req.io.to("music-control-room").emit("player:execute", {
+      req.io.to(SOCKET_EVENTS.ROOM_NAME).emit(SOCKET_EVENTS.EXECUTE, {
         action: "PLAY",
         songId: selectedSongId,
       });
@@ -55,25 +98,21 @@ export const handlePlayerAction = (req, res) => {
       break;
     case "pause":
       setPlayerStatus("paused");
+      req.io.to(SOCKET_EVENTS.ROOM_NAME).emit(SOCKET_EVENTS.EXECUTE, {
+        action: "PAUSE",
+      });
       break;
     case "next": {
-      const { playlist } = getLatestState();
-      const currentSongId = getCurrentSongId();
-      const currentIndex = playlist.findIndex(
-        (item) => item.id === currentSongId
-      );
-      const nextIndex = (currentIndex + 1) % playlist.length;
-      if (playlist.length === 0 || currentIndex === -1) {
-        return res.status(400).json({ message: "No valid song to play next" });
+      const result = await changeTrack("next", req.io);
+      if (result.error) {
+        return res.status(400).json({ message: result.error });
       }
-      const nextSong = playlist(nextIndex);
-      if (nextSong) {
-        setCurrentSong(nextSong.id);
-        setPlayerStatus("playing");
-
-        req.io
-          .to("music-control-room")
-          .emit("player:execute", { action: "PLAY", songId: nextSong.id });
+      break;
+    }
+    case "prev": {
+      const result = await changeTrack("prev", req.io);
+      if (result.error) {
+        return res.status(400).json({ message: result.error });
       }
       break;
     }

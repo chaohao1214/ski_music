@@ -48,25 +48,6 @@ const playlistSlice = createSlice({
   name: "playlist",
   initialState,
   reducers: {
-    updatePlaylistFromSocket(state, action) {
-      const { playlist } = action.payload || {};
-      if (Array.isArray(playlist)) {
-        const unique = [];
-        const seen = new Set();
-        for (const song of playlist) {
-          if (!seen.has(song.id)) {
-            seen.add(song.id);
-            unique.push(song);
-          }
-        }
-        state.currentPlaylist = unique;
-      } else {
-        console.warn("Invalid playlist data from socket:", action.payload);
-      }
-    },
-    setPlayerState(state, action) {
-      state.playerState = action.payload;
-    },
     updatePlayerAndPlaylist(state, action) {
       const { playlist, player } = action.payload;
       state.currentPlaylist = playlist;
@@ -130,11 +111,7 @@ const playlistSlice = createSlice({
   },
 });
 
-export const {
-  setPlaylistState,
-  updatePlaylistFromSocket,
-  setPlayerState,
-  updatePlayerAndPlaylist,
-} = playlistSlice.actions;
+export const { setPlaylistState, updatePlayerAndPlaylist } =
+  playlistSlice.actions;
 
 export default playlistSlice.reducer;
