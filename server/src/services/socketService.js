@@ -1,9 +1,12 @@
+import { getLatestStateAndBroadcast } from "./playerStateService.js";
+
 export const handleSocketConnections = (io) => {
   const roomName = "music-control-room";
   io.on("connection", (socket) => {
     console.log(`Client connected: ${socket.id}`);
     socket.join(roomName);
 
+    getLatestStateAndBroadcast(io);
     socket.on("player:command", (data) => {
       console.log("Received command from controller:", data);
       socket.to(roomName).emit("player:execute", data);
