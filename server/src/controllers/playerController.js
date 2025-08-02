@@ -113,16 +113,15 @@ export const getPlayerState = async (req, res) => {
       ORDER BY pi.position ASC
     `);
 
-    const baseUrl =
-      process.env.BASE_URL.trim() || `${req.protocol}://${req.get("host")}`;
-
     const player = playerResult.rows[0];
 
     res.json({
       player,
       playlist: playlistResult.rows.map((row) => ({
         ...row,
-        url: `${baseUrl}/uploads/${row.url}`,
+        url: row.url.startsWith("https://")
+          ? row.url
+          : `http://localhost:3001/uploads/${row.url}`,
       })),
     });
   } catch (error) {
