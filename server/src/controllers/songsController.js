@@ -2,6 +2,7 @@ import { query } from "../services/postgresService.js";
 import path from "path";
 import fs from "fs";
 import dotenv from "dotenv";
+import { supabase } from "../services/supabaseClient.js";
 
 dotenv.config();
 const BASE_URL = process.env.BASE_URL || "http://localhost:3001";
@@ -91,6 +92,13 @@ export const deleteSong = async (req, res) => {
       fs.unlinkSync(filePath);
     }
 
+    // delete supabase bucket files
+
+    const { error: supabaseError } = await supabase.storage
+      .from(process.env.SUPABASE_SERVICE_ROLE_KEY)
+      .remove([song.filename]);
+
+    // delete songs in songs table
     await query("DELETE FROM songs WHERE id = $1", [songId]);
     res.status(200).json({ message: "Song deleted successfully" });
   } catch (error) {

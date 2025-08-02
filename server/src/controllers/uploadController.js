@@ -1,13 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
 import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
 import { query } from "../services/postgresService.js";
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+import { supabase } from "../services/supabaseClient.js";
 
 const upload = multer({ dest: "temp/" });
 
