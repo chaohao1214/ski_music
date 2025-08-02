@@ -93,10 +93,17 @@ export const deleteSong = async (req, res) => {
     }
 
     // delete supabase bucket files
-
-    const { error: supabaseError } = await supabase.storage
-      .from(process.env.SUPABASE_SERVICE_ROLE_KEY)
+    const { data, error: supabaseError } = await supabase.storage
+      .from("songs")
       .remove([song.filename]);
+    console.log("Supabase delete result:", { data, supabaseError });
+
+    if (supabaseError) {
+      console.error("Supabase file delete error:", supabaseError.message);
+      return res
+        .status(500)
+        .json({ message: "Failed to delete file from storage" });
+    }
 
     // delete songs in songs table
     await query("DELETE FROM songs WHERE id = $1", [songId]);
