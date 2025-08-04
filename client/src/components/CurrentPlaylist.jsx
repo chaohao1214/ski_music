@@ -30,6 +30,20 @@ const CurrentPlaylist = ({
               <ListItem
                 key={song.playlistItemId}
                 selected={song.id === nowPlayingId}
+                sx={{
+                  borderLeft:
+                    song.id === nowPlayingId
+                      ? "4px solid #4cafef"
+                      : "4px solid transparent",
+                  bgcolor:
+                    song.id === nowPlayingId
+                      ? "rgba(76, 175, 239, 0.08)"
+                      : "transparent",
+                  "&:hover": {
+                    bgcolor: "rgba(255, 255, 255, 0.04)",
+                  },
+                  transition: "all 0.2s ease",
+                }}
                 secondaryAction={
                   showDelete && onRemove ? (
                     <Tooltip title="Remove from playlist">

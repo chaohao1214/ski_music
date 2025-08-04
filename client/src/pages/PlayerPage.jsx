@@ -26,7 +26,6 @@ const PlayerPage = () => {
     null;
 
   const [audioUnlocked, setAudioUnlocked] = useState(false);
-  // keep ref in sync
 
   useEffect(() => {
     dispatch(fetchPlaylist());
@@ -183,7 +182,10 @@ const PlayerPage = () => {
             minWidth={{ xs: "100%", md: "50%" }}
             sx={{ px: { xs: 1, sm: 2 } }}
           >
-            <CurrentPlaylist currentPlaylist={currentPlaylist} />
+            <CurrentPlaylist
+              currentPlaylist={currentPlaylist}
+              nowPlayingId={playerState.currentSongId}
+            />
           </Box>
         </Box>
       </Box>

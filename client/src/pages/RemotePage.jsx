@@ -158,6 +158,7 @@ const RemotePage = () => {
         <Box flex={1}>
           <CurrentPlaylist
             currentPlaylist={currentPlaylist}
+            nowPlayingId={playerState.currentSongId}
             onRemove={(playlistItemId) =>
               dispatch(removeSongFromPlaylist(playlistItemId))
             }
