@@ -142,7 +142,8 @@ const PlayerPage = () => {
             <AudioPlayer
               ref={audioRef}
               src={nowPlaying?.url}
-              autoPlay={playerState?.status === "playing"}
+              // only happens from home page to player, need audioUnlocked
+              autoPlay={audioUnlocked && playerState?.status === "playing"}
               showSkipControls
               showJumpControls={false}
               onPlay={() => console.log("Playing")}
