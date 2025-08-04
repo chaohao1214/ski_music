@@ -1,13 +1,11 @@
 import { Typography, Box, Button, Stack } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { openLoginModal } from "../features/auth/authSlice";
-import LoginModal from "../components/LoginModal";
 import { useNavigate } from "react-router-dom";
-import RemotePage from "./RemotePage";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import TuneIcon from "@mui/icons-material/Tune";
 
-const GuestLandingPage = () => {
+const HomePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -104,41 +102,6 @@ const GuestLandingPage = () => {
             Music Controller
           </Button>
         </Stack>
-      </Box>
-    </Box>
-  );
-};
-
-const HomePage = () => {
-  const { isAuthenticated, status } = useSelector((state) => state.auth);
-
-  if (status === "loading") {
-    return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="h6">Checking authentication...</Typography>
-      </Box>
-    );
-  }
-
-  return (
-    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      <LoginModal />
-      <Box
-        sx={{
-          flexGrow: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {isAuthenticated ? <RemotePage /> : <GuestLandingPage />}
       </Box>
     </Box>
   );

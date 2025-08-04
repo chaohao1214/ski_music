@@ -33,7 +33,7 @@ const authSlice = createSlice({
     user: null,
     // get token from localstorage to handle page refersh
     token: localStorage.getItem("token") || null,
-    isAuthenticated: !!localStorage.getItem("token"),
+    isAuthenticated: false,
     status: "idle",
     error: null,
     isLoginModalOpen: false,
