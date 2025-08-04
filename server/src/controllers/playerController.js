@@ -54,8 +54,6 @@ export const changeTrack = async (direction, io) => {
     action: "PLAY",
     songId: newSong.songId,
   });
-
-  getLatestStateAndBroadcast(io);
   return { success: true };
 };
 
@@ -100,7 +98,6 @@ export const handlePlayerAction = async (req, res) => {
         action: "PLAY",
         songId: selectedSongId,
       });
-      getLatestStateAndBroadcast(req.io);
       break;
     case "pause":
       setPlayerStatus("paused");
@@ -123,8 +120,10 @@ export const handlePlayerAction = async (req, res) => {
       break;
     }
     case "stop":
-      setCurrentSong(null);
       setPlayerStatus("stopped");
+      req.io.to(SOCKET_EVENTS.ROOM_NAME).emit(SOCKET_EVENTS.EXECUTE, {
+        action: "STOP",
+      });
       break;
     default:
       return res.status(400).json({ message: `Unknown action: ${action}` });

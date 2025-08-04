@@ -1,13 +1,4 @@
-import {
-  Box,
-  Button,
-  Container,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Paper, Typography } from "@mui/material";
 import { useSocket } from "../contexts/SocketContext";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,6 +11,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import "react-h5-audio-player/lib/styles.css";
 import { useNavigate } from "react-router-dom";
 import { SOCKET_EVENTS } from "../utils/socketEvent";
+import CurrentPlaylist from "../components/CurrentPlaylist";
 
 const PlayerPage = () => {
   const audioRef = useRef();
@@ -92,6 +84,9 @@ const PlayerPage = () => {
         } else {
           console.warn("Cannot resume: audio is locked");
         }
+      } else if (data.action === "STOP") {
+        audio.pause();
+        audio.currentTime = 0;
       }
     };
 
@@ -227,30 +222,7 @@ const PlayerPage = () => {
             minWidth={{ xs: "100%", md: "50%" }}
             sx={{ px: { xs: 1, sm: 2 } }}
           >
-            <Typography variant="h4" gutterBottom>
-              Current Playlist
-            </Typography>
-            <Paper sx={{ maxHeight: 500, overflowY: "auto", p: 2 }}>
-              <List>
-                {currentPlaylist?.length > 0 ? (
-                  currentPlaylist.map((song, index) => (
-                    <ListItem
-                      key={song.playlistItemId}
-                      selected={song.id === nowPlaying?.id}
-                    >
-                      <ListItemText
-                        primary={`${index + 1}. ${song.title}`}
-                        secondary={song.artist || "Unknown Artist"}
-                      />
-                    </ListItem>
-                  ))
-                ) : (
-                  <ListItem>
-                    <ListItemText primary="Playlist is empty" />
-                  </ListItem>
-                )}
-              </List>
-            </Paper>
+            <CurrentPlaylist currentPlaylist={currentPlaylist} />
           </Box>
         </Box>
       </Box>

@@ -7,7 +7,7 @@ import LoginModal from "./components/LoginModal";
 import HomePage from "./pages/HomePage";
 import { useSocket } from "./contexts/SocketContext";
 import PlayerPage from "./pages/PlayerPage";
-import ControlInterface from "./pages/ControlInterfacePage";
+import RemotePage from "./pages/RemotePage";
 import { updatePlayerAndPlaylist } from "./features/music/playlistSlice";
 
 const token = localStorage.getItem("token");
@@ -51,7 +51,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/player" element={<PlayerPage />} />
-        <Route path="/remote" element={<ControlInterface />} />
+        <Route path="/remote" element={<RemotePage />} />
       </Routes>
     </BrowserRouter>
   );

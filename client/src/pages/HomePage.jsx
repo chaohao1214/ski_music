@@ -7,11 +7,10 @@ import {
   Toolbar,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { logout, openLoginModal } from "../features/auth/authSlice";
+import { openLoginModal } from "../features/auth/authSlice";
 import LoginModal from "../components/LoginModal";
-
 import { useNavigate } from "react-router-dom";
-import ControlInterface from "./ControlInterfacePage";
+import RemotePage from "./RemotePage";
 
 const GuestLandingPage = () => {
   const dispatch = useDispatch();
@@ -90,7 +89,7 @@ const HomePage = () => {
         }}
       >
         {/* The content (either guest or authenticated view) is placed here and will be centered. */}
-        {isAuthenticated ? <ControlInterface /> : <GuestLandingPage />}
+        {isAuthenticated ? <RemotePage /> : <GuestLandingPage />}
       </Box>
     </Box>
   );

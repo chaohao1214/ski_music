@@ -11,7 +11,6 @@ export const sendPlayerCommand = createAsyncThunk(
         playload.songId = songId;
       }
       const response = await apiPost("/api/player/action", playload);
-      enqueueSnackbar(`🎵 ${action} success`, { variant: "success" });
       return response.data;
     } catch (error) {
       enqueueSnackbar(`❌ Failed to ${action}`, { variant: "error" });
