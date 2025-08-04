@@ -1,22 +1,18 @@
 import { Box, Button, Paper, Typography } from "@mui/material";
-import { useSocket } from "../contexts/SocketContext";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchPlaylist,
-  updatePlayerAndPlaylist,
-} from "../features/music/playlistSlice";
+import { fetchPlaylist } from "../features/music/playlistSlice";
 import AudioPlayer from "react-h5-audio-player";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import "react-h5-audio-player/lib/styles.css";
 import { useNavigate } from "react-router-dom";
-import { SOCKET_EVENTS } from "../utils/socketEvent";
+
 import CurrentPlaylist from "../components/CurrentPlaylist";
 import { sendPlayerCommand } from "../features/music/playerSlice";
+import { usePlayerSocket } from "../hooks/usePlayerSocket";
 
 const PlayerPage = () => {
   const audioRef = useRef();
-  const socket = useSocket();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -39,51 +35,7 @@ const PlayerPage = () => {
   console.log("nowPlaying", nowPlaying);
   console.log("currentPlaylist", currentPlaylist);
 
-  useEffect(() => {
-    socket.connect();
-
-    const handlePlaylistUpdate = (newState) => {
-      console.log("Player Client: Received playlist:update", newState);
-      dispatch(updatePlayerAndPlaylist(newState));
-    };
-
-    const handleExecuteCommand = (data) => {
-      console.log("Player Client: Received player:execute", data);
-      const audio = audioRef.current?.audio?.current;
-      if (!audio) return;
-
-      switch (data.action) {
-        case "PLAY":
-          if (audioUnlocked && nowPlaying?.url) {
-            audio.src = nowPlaying.url;
-            audio.play().catch(() => {});
-          }
-          break;
-        case "PAUSE":
-          audio.pause();
-          break;
-        case "RESUME":
-          if (audioUnlocked) audio.play().catch(() => {});
-          break;
-        case "STOP":
-          audio.pause();
-          audio.currentTime = 0;
-          break;
-        default:
-          break;
-      }
-    };
-
-    socket.on(SOCKET_EVENTS.STATE_UPDATE, handlePlaylistUpdate);
-    socket.on(SOCKET_EVENTS.EXECUTE, handleExecuteCommand);
-    socket.emit("playlist:get_state");
-
-    return () => {
-      socket.off(SOCKET_EVENTS.STATE_UPDATE, handlePlaylistUpdate);
-      socket.off(SOCKET_EVENTS.EXECUTE, handleExecuteCommand);
-      socket.disconnect();
-    };
-  }, [socket, audioUnlocked, nowPlaying?.id]);
+  usePlayerSocket(dispatch, audioRef, audioUnlocked, nowPlaying);
 
   // Unlock audio via user interaction
   useEffect(() => {
@@ -114,6 +66,23 @@ const PlayerPage = () => {
       window.removeEventListener("click", unlockAudio);
     };
   }, [audioUnlocked, nowPlaying?.id]);
+
+  const handleNextSong = () => {
+    if (!currentPlaylist || currentPlaylist.length === 0) return;
+    let currentIndex = currentPlaylist.findIndex(
+      (song) => song.id === playerState.currentSongId
+    );
+
+    let nextIndex = currentIndex + 1;
+    if (nextIndex >= currentPlaylist.length) {
+      nextIndex = 0;
+    }
+
+    const nextSong = currentPlaylist[nextIndex];
+    if (nextSong) {
+      dispatch(sendPlayerCommand({ action: "PLAY", songId: nextSong.id }));
+    }
+  };
 
   return (
     <Box
@@ -176,6 +145,7 @@ const PlayerPage = () => {
               src={nowPlaying?.url}
               autoPlay={playerState?.status === "playing"}
               showSkipControls
+              showJumpControls={false}
               onPlay={() => console.log("Playing")}
               onPause={() => console.log("Paused")}
               onClickNext={(e) => {
@@ -186,7 +156,7 @@ const PlayerPage = () => {
                 e.stopPropagation();
                 dispatch(sendPlayerCommand({ action: "PREV" }));
               }}
-              onEnded={() => console.log("Ended")}
+              onEnded={handleNextSong}
               style={{
                 borderRadius: 8,
                 marginTop: 16,

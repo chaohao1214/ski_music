@@ -1,13 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  IconButton,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Button, IconButton, Tooltip, Typography } from "@mui/material";
 import { logout } from "../features/auth/authSlice";
 
 import { useSocket } from "../contexts/SocketContext";
