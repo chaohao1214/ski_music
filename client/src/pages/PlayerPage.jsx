@@ -12,6 +12,7 @@ import "react-h5-audio-player/lib/styles.css";
 import { useNavigate } from "react-router-dom";
 import { SOCKET_EVENTS } from "../utils/socketEvent";
 import CurrentPlaylist from "../components/CurrentPlaylist";
+import { sendPlayerCommand } from "../features/music/playerSlice";
 
 const PlayerPage = () => {
   const audioRef = useRef();
@@ -82,7 +83,7 @@ const PlayerPage = () => {
       socket.off(SOCKET_EVENTS.EXECUTE, handleExecuteCommand);
       socket.disconnect();
     };
-  }, [socket, audioUnlocked, nowPlaying.id]);
+  }, [socket, audioUnlocked, nowPlaying?.id]);
 
   // Unlock audio via user interaction
   useEffect(() => {
@@ -112,7 +113,7 @@ const PlayerPage = () => {
     return () => {
       window.removeEventListener("click", unlockAudio);
     };
-  }, [audioUnlocked, nowPlaying.id]);
+  }, [audioUnlocked, nowPlaying?.id]);
 
   return (
     <Box
@@ -174,10 +175,17 @@ const PlayerPage = () => {
               ref={audioRef}
               src={nowPlaying?.url}
               autoPlay={playerState?.status === "playing"}
+              showSkipControls
               onPlay={() => console.log("Playing")}
               onPause={() => console.log("Paused")}
-              onClickNext={() => console.log("Next")}
-              onClickPrevious={() => console.log("Prev")}
+              onClickNext={(e) => {
+                e.stopPropagation();
+                dispatch(sendPlayerCommand({ action: "NEXT" }));
+              }}
+              onClickPrevious={(e) => {
+                e.stopPropagation();
+                dispatch(sendPlayerCommand({ action: "PREV" }));
+              }}
               onEnded={() => console.log("Ended")}
               style={{
                 borderRadius: 8,
