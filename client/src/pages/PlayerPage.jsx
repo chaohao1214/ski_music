@@ -15,9 +15,6 @@ import CurrentPlaylist from "../components/CurrentPlaylist";
 
 const PlayerPage = () => {
   const audioRef = useRef();
-  const nowPlayingRef = useRef(null);
-  const audioUnlockedRef = useRef(false);
-
   const socket = useSocket();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -33,20 +30,13 @@ const PlayerPage = () => {
 
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   // keep ref in sync
-  useEffect(() => {
-    nowPlayingRef.current = nowPlaying;
-  }, [nowPlaying]);
-
-  useEffect(() => {
-    audioUnlockedRef.current = audioUnlocked;
-  }, [audioUnlocked]);
-
-  console.log("nowPlaying", nowPlaying);
-  console.log("currentPlaylist", currentPlaylist);
 
   useEffect(() => {
     dispatch(fetchPlaylist());
   }, [dispatch]);
+
+  console.log("nowPlaying", nowPlaying);
+  console.log("currentPlaylist", currentPlaylist);
 
   useEffect(() => {
     socket.connect();
@@ -59,34 +49,27 @@ const PlayerPage = () => {
     const handleExecuteCommand = (data) => {
       console.log("Player Client: Received player:execute", data);
       const audio = audioRef.current?.audio?.current;
-      const nowPlaying = nowPlayingRef.current;
-      const unlocked = audioUnlockedRef.current;
       if (!audio) return;
 
-      if (data.action === "PLAY") {
-        if (unlocked && nowPlaying?.url) {
-          audio.src = nowPlaying.url;
-          audio
-            .play()
-            .then(() => console.log("Audio is playing"))
-            .catch((e) => console.error("Audio play failed", e));
-        } else {
-          console.warn("Cannot play audio: audio is locked or url missing");
-        }
-      } else if (data.action === "PAUSE") {
-        audio.pause();
-      } else if (data.action === "RESUME") {
-        if (unlocked) {
-          audio
-            .play()
-            .then(() => console.log("Audio resumed"))
-            .catch((e) => console.error("Resume failed", e));
-        } else {
-          console.warn("Cannot resume: audio is locked");
-        }
-      } else if (data.action === "STOP") {
-        audio.pause();
-        audio.currentTime = 0;
+      switch (data.action) {
+        case "PLAY":
+          if (audioUnlocked && nowPlaying?.url) {
+            audio.src = nowPlaying.url;
+            audio.play().catch(() => {});
+          }
+          break;
+        case "PAUSE":
+          audio.pause();
+          break;
+        case "RESUME":
+          if (audioUnlocked) audio.play().catch(() => {});
+          break;
+        case "STOP":
+          audio.pause();
+          audio.currentTime = 0;
+          break;
+        default:
+          break;
       }
     };
 
@@ -99,7 +82,7 @@ const PlayerPage = () => {
       socket.off(SOCKET_EVENTS.EXECUTE, handleExecuteCommand);
       socket.disconnect();
     };
-  }, [socket]);
+  }, [socket, audioUnlocked, nowPlaying.id]);
 
   // Unlock audio via user interaction
   useEffect(() => {
@@ -107,11 +90,11 @@ const PlayerPage = () => {
 
     const unlockAudio = () => {
       const audio = audioRef.current?.audio?.current;
-      const url = nowPlayingRef.current?.url;
-      if (!audio || !url) return;
+
+      if (!audio || !nowPlaying?.url) return;
 
       audio.muted = true;
-      audio.src = url;
+      audio.src = nowPlaying.url;
       audio
         .play()
         .then(() => {
@@ -129,7 +112,7 @@ const PlayerPage = () => {
     return () => {
       window.removeEventListener("click", unlockAudio);
     };
-  }, [audioUnlocked]);
+  }, [audioUnlocked, nowPlaying.id]);
 
   return (
     <Box
