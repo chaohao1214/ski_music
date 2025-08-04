@@ -1,16 +1,11 @@
-import {
-  Container,
-  Typography,
-  Box,
-  Button,
-  AppBar,
-  Toolbar,
-} from "@mui/material";
+import { Typography, Box, Button, Stack } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { openLoginModal } from "../features/auth/authSlice";
 import LoginModal from "../components/LoginModal";
 import { useNavigate } from "react-router-dom";
 import RemotePage from "./RemotePage";
+import MusicNoteIcon from "@mui/icons-material/MusicNote";
+import TuneIcon from "@mui/icons-material/Tune";
 
 const GuestLandingPage = () => {
   const dispatch = useDispatch();
@@ -27,68 +22,122 @@ const GuestLandingPage = () => {
   return (
     <Box
       sx={{
+        display: "flex",
         width: "100vw",
         height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        textAlign: "center",
-        px: 2,
+        bgcolor: "background.default",
+        color: "text.primary",
       }}
     >
-      <Typography
-        variant="h2"
-        component="h1"
-        gutterBottom
-        sx={{ fontWeight: "bold" }}
+      {/* Left side brand area */}
+      <Box
+        sx={{
+          width: "30%",
+          bgcolor: "background.paper",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "flex-start",
+          px: 6,
+          borderRight: "1px solid rgba(255,255,255,0.05)",
+        }}
       >
-        Music System
-      </Typography>
-      <Typography variant="h5" color="text.secondary" sx={{ mb: 5 }}>
-        Please select your view
-      </Typography>
-      <Box sx={{ display: "flex", gap: 4, mb: 5 }}>
-        <Button variant="contained" size="large" onClick={handleLaunchPlayer}>
-          Music Player
-        </Button>
-        <Button variant="contained" size="large" onClick={handleOpenController}>
-          Music Controller
-        </Button>
-      </Box>{" "}
-      <Box sx={{ color: "text.secondary", maxWidth: "600px", px: 2 }}>
-        <Typography variant="body1" sx={{ mb: 1 }}>
-          The <strong>Music Player</strong> view should be used on the device
-          connected to the speakers. It listens for commands and plays music.
+        <Typography variant="h3" sx={{ fontWeight: "bold", mb: 1 }}>
+          Music System
         </Typography>
-        <Typography variant="body1">
-          The <strong>Music Controller</strong> view is used to manage the
-          playlist and control playback remotely.
+        <Typography variant="body1" sx={{ opacity: 0.8 }}>
+          Control and play music seamlessly across devices
         </Typography>
+      </Box>
+
+      {/* right side entry */}
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "flex-start",
+          px: 6,
+        }}
+      >
+        <Stack spacing={2}>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<MusicNoteIcon />}
+            onClick={handleLaunchPlayer}
+            sx={{
+              bgcolor: "#334155",
+              color: "#f1f5f9",
+              borderRadius: "20px",
+              px: 4,
+              py: 1.5,
+              fontSize: "1rem",
+              textTransform: "none",
+              "&:hover": {
+                bgcolor: "#475569",
+              },
+            }}
+          >
+            Music Player
+          </Button>
+
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<TuneIcon />}
+            onClick={handleOpenController}
+            sx={{
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
+              borderRadius: "9999px",
+              px: 4,
+              py: 1.5,
+              fontSize: "1rem",
+              textTransform: "none",
+              "&:hover": {
+                bgcolor: "primary.dark",
+              },
+            }}
+          >
+            Music Controller
+          </Button>
+        </Stack>
       </Box>
     </Box>
   );
 };
 
 const HomePage = () => {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, status } = useSelector((state) => state.auth);
 
-  return (
-    // This outer Box is the main layout container for the entire page.
-    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      {/* The LoginModal is always in the DOM, ready to be opened */}
-      <LoginModal />
-
-      {/* ANNOTATION: This is the Box that acts as our centering "stage". */}
+  if (status === "loading") {
+    return (
       <Box
         sx={{
-          flexGrow: 1, // It grows to fill all vertical space left by the AppBar.
-          display: "flex", // It uses flexbox...
-          alignItems: "center", // ...to center its child vertically...
-          justifyContent: "center", // ...and horizontally.
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
-        {/* The content (either guest or authenticated view) is placed here and will be centered. */}
+        <Typography variant="h6">Checking authentication...</Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <LoginModal />
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         {isAuthenticated ? <RemotePage /> : <GuestLandingPage />}
       </Box>
     </Box>

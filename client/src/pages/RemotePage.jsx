@@ -44,7 +44,6 @@ const RemotePage = () => {
       enqueueSnackbar("Playlist is empty!", { variant: "warning" });
       return;
     }
-    console.log("playerState", playerState);
     switch (playerState.status) {
       case "paused":
         dispatch(sendPlayerCommand({ action: "RESUME" }));

@@ -63,7 +63,7 @@ export async function getLatestStateAndBroadcast(ioInstance = io) {
     ioInstance
       .to(SOCKET_EVENTS.ROOM_NAME)
       .emit(SOCKET_EVENTS.STATE_UPDATE, fullState);
-    console.log("🎵 Updated playlist state:", playlist);
+    console.log("🎵 Updated fullState state:", fullState);
   } catch (error) {
     console.error("Error fetching latest state for broadcast:", error);
   }
