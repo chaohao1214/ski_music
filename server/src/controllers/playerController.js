@@ -70,6 +70,12 @@ export const handlePlayerAction = async (req, res) => {
   }
 
   switch (action.toLowerCase()) {
+    case "resume":
+      setPlayerStatus("playing");
+      req.io
+        .to(SOCKET_EVENTS.ROOM_NAME)
+        .emit(SOCKET_EVENTS.EXECUTE, { action: "RESUME" });
+      break;
     case "play":
       let selectedSongId = songId;
       if (!selectedSongId) {

@@ -37,7 +37,7 @@ const ControlInterface = () => {
     (state) => state.songs
   );
   const { currentPlaylist } = useSelector((state) => state.playlist);
-
+  const { playerState } = useSelector((state) => state.playlist);
   useEffect(() => {
     socket.connect();
 
@@ -76,8 +76,13 @@ const ControlInterface = () => {
       enqueueSnackbar("Playlist is empty!", { variant: "warning" });
       return;
     }
+    console.log("playerState", playerState);
 
-    dispatch(sendPlayerCommand({ action: "PLAY" }));
+    if (playerState.status === "paused") {
+      dispatch(sendPlayerCommand({ action: "RESUME" }));
+    } else {
+      dispatch(sendPlayerCommand({ action: "PLAY" }));
+    }
   };
 
   const handlePause = () => {

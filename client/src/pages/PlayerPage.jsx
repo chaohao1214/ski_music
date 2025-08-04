@@ -19,6 +19,7 @@ import AudioPlayer from "react-h5-audio-player";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import "react-h5-audio-player/lib/styles.css";
 import { useNavigate } from "react-router-dom";
+import { SOCKET_EVENTS } from "../utils/socketEvent";
 
 const PlayerPage = () => {
   const audioRef = useRef();
@@ -49,7 +50,6 @@ const PlayerPage = () => {
   }, [audioUnlocked]);
 
   console.log("nowPlaying", nowPlaying);
-  console.log("playerState", playerState);
   console.log("currentPlaylist", currentPlaylist);
 
   useEffect(() => {
@@ -83,16 +83,25 @@ const PlayerPage = () => {
         }
       } else if (data.action === "PAUSE") {
         audio.pause();
+      } else if (data.action === "RESUME") {
+        if (unlocked) {
+          audio
+            .play()
+            .then(() => console.log("Audio resumed"))
+            .catch((e) => console.error("Resume failed", e));
+        } else {
+          console.warn("Cannot resume: audio is locked");
+        }
       }
     };
 
-    socket.on("playlist:update", handlePlaylistUpdate);
-    socket.on("player:execute", handleExecuteCommand);
+    socket.on(SOCKET_EVENTS.STATE_UPDATE, handlePlaylistUpdate);
+    socket.on(SOCKET_EVENTS.EXECUTE, handleExecuteCommand);
     socket.emit("playlist:get_state");
 
     return () => {
-      socket.off("playlist:update", handlePlaylistUpdate);
-      socket.off("player:execute", handleExecuteCommand);
+      socket.off(SOCKET_EVENTS.STATE_UPDATE, handlePlaylistUpdate);
+      socket.off(SOCKET_EVENTS.EXECUTE, handleExecuteCommand);
       socket.disconnect();
     };
   }, [socket]);
