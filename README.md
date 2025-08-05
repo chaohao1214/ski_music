@@ -48,3 +48,33 @@ It allows multiple users to remotely control a shared music player via a web int
 
 ## 📂 Project Structure
 
+
+```
+ski_music/
+├── client/
+│   ├── src/
+│   │   ├── app/
+│   │   ├── assets/
+│   │   ├── components/
+│   │   ├── contexts/
+│   │   ├── features/
+│   │   ├── hooks/
+│   │   ├── pages/
+│   │   ├── utils/
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── theme.js
+│   ├── package.json
+│   └── vite.config.js
+├── server/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── constants/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── services/
+│   │   └── server.js
+│   ├── package.json
+│   └── skating_rink.db
+└── README.md
+```
