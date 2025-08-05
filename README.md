@@ -48,33 +48,87 @@ It allows multiple users to remotely control a shared music player via a web int
 
 ## 📂 Project Structure
 
-
-```
+```plaintext
 ski_music/
 ├── client/
+│   ├── dist/
+│   ├── node_modules/
 │   ├── src/
 │   │   ├── app/
+│   │   │   └── store.js
 │   │   ├── assets/
+│   │   │   └── undraw_happy-music_name.svg
 │   │   ├── components/
+│   │   │   ├── BackButton.jsx
+│   │   │   ├── CurrentPlaylist.jsx
+│   │   │   ├── LoginModal.jsx
+│   │   │   ├── SongLibrary.jsx
+│   │   │   └── UploadZone.jsx
 │   │   ├── contexts/
+│   │   │   └── SocketContext.jsx
 │   │   ├── features/
+│   │   │   ├── auth/
+│   │   │   │   └── authSlice.js
+│   │   │   └── music/
+│   │   │       ├── playerSlice.js
+│   │   │       ├── playlistSlice.js
+│   │   │       └── songLibrarySlice.js
 │   │   ├── hooks/
+│   │   │   └── usePlayerSocket.js
 │   │   ├── pages/
+│   │   │   ├── HomePage.jsx
+│   │   │   ├── PlayerPage.jsx
+│   │   │   └── RemotePage.jsx
 │   │   ├── utils/
+│   │   │   ├── apiClient.js
+│   │   │   └── socketEvent.js
 │   │   ├── App.jsx
+│   │   ├── index.css
 │   │   ├── main.jsx
 │   │   └── theme.js
+│   ├── .env
+│   ├── .gitignore
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
 │   ├── package.json
+│   ├── vercel.json
 │   └── vite.config.js
+│
 ├── server/
+│   ├── node_modules/
 │   ├── src/
 │   │   ├── api/
+│   │   │   ├── authRoutes.js
+│   │   │   ├── playerRoutes.js
+│   │   │   ├── playlistRoutes.js
+│   │   │   └── songsRoutes.js
 │   │   ├── constants/
 │   │   ├── controllers/
+│   │   │   ├── authController.js
+│   │   │   ├── playerController.js
+│   │   │   ├── playlistController.js
+│   │   │   ├── songsController.js
+│   │   │   └── uploadController.js
 │   │   ├── middleware/
 │   │   ├── services/
+│   │   │   ├── playerStateService.js
+│   │   │   ├── postgresService.js
+│   │   │   ├── socketService.js
+│   │   │   └── supabaseClient.js
+│   │   ├── socketEvent.js
 │   │   └── server.js
+│   ├── temp/
+│   │   └── uploads/
+│   │       ├── 1754169958878_Acti.mp3
+│   │       ├── 1754169958889_Adva.mp3
+│   │       ├── 1754271144441_Acti.mp3
+│   │       ├── 1754271181033_3_am.mp3
+│   │       └── 1754271181044_A_Su.mp3
+│   ├── .env
+│   ├── .gitignore
+│   ├── package-lock.json
 │   ├── package.json
-│   └── skating_rink.db
+│   ├── skating_rink.db
+│   └── README.md
 └── README.md
-```
