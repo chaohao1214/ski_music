@@ -1,4 +1,11 @@
-import { Typography, Box, Button, Stack } from "@mui/material";
+import {
+  Typography,
+  Box,
+  Button,
+  Stack,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { openLoginModal } from "../features/auth/authSlice";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +15,8 @@ import TuneIcon from "@mui/icons-material/Tune";
 const HomePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   const handleLaunchPlayer = () => {
     navigate("/player");
@@ -20,6 +29,7 @@ const HomePage = () => {
   return (
     <Box
       sx={{
+        flexDirection: isSmallScreen ? "column" : "row",
         display: "flex",
         width: "100vw",
         height: "100vh",
@@ -30,14 +40,18 @@ const HomePage = () => {
       {/* Left side brand area */}
       <Box
         sx={{
-          width: "30%",
-          bgcolor: "background.paper",
+          width: isSmallScreen ? "100%" : "30%",
+          bgcolor: theme.palette.background.paper,
+          borderRight: isSmallScreen
+            ? "none"
+            : `1px solid ${theme.palette.divider}`,
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          alignItems: "flex-start",
-          px: 6,
-          borderRight: "1px solid rgba(255,255,255,0.05)",
+          alignItems: isSmallScreen ? "center" : "flex-start",
+          px: isSmallScreen ? 3 : 6,
+          py: isSmallScreen ? 4 : 0,
+          textAlign: isSmallScreen ? "center" : "left",
         }}
       >
         <Typography variant="h3" sx={{ fontWeight: "bold", mb: 1 }}>
@@ -55,26 +69,28 @@ const HomePage = () => {
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          alignItems: "flex-start",
-          px: 6,
+          alignItems: isSmallScreen ? "center" : "flex-start",
+          px: isSmallScreen ? 3 : 6,
+          py: isSmallScreen ? 4 : 0,
         }}
       >
-        <Stack spacing={2}>
+        <Stack spacing={2} sx={{ width: isSmallScreen ? "100%" : "auto" }}>
           <Button
             variant="contained"
             size="large"
             startIcon={<MusicNoteIcon />}
             onClick={handleLaunchPlayer}
             sx={{
-              bgcolor: "#334155",
-              color: "#f1f5f9",
+              bgcolor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
               borderRadius: "20px",
               px: 4,
               py: 1.5,
               fontSize: "1rem",
               textTransform: "none",
+              width: isSmallScreen ? "100%" : "auto",
               "&:hover": {
-                bgcolor: "#475569",
+                bgcolor: theme.palette.primary.dark,
               },
             }}
           >
@@ -87,15 +103,16 @@ const HomePage = () => {
             startIcon={<TuneIcon />}
             onClick={handleOpenController}
             sx={{
-              bgcolor: "primary.main",
-              color: "primary.contrastText",
-              borderRadius: "9999px",
+              bgcolor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
+              borderRadius: "20px",
               px: 4,
               py: 1.5,
               fontSize: "1rem",
               textTransform: "none",
+              width: isSmallScreen ? "100%" : "auto",
               "&:hover": {
-                bgcolor: "primary.dark",
+                bgcolor: theme.palette.primary.dark,
               },
             }}
           >

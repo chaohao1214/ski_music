@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import CurrentPlaylist from "../components/CurrentPlaylist";
 import { sendPlayerCommand } from "../features/music/playerSlice";
 import { usePlayerSocket } from "../hooks/usePlayerSocket";
+import BackButton from "../components/BackButton";
 
 const PlayerPage = () => {
   const audioRef = useRef();
@@ -94,29 +95,22 @@ const PlayerPage = () => {
         p: { xs: 2, md: 4 },
       }}
     >
-      <Box sx={{ position: "absolute", top: 16, left: 16 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate("/")}
-          sx={{
-            color: "white",
-            borderColor: "white",
-            "&:hover": {
-              backgroundColor: "rgba(255, 255, 255, 0.1)",
-              borderColor: "white",
-            },
-          }}
-        >
-          Home
-        </Button>
-      </Box>
+      <BackButton />
 
       <Box sx={{ width: "100%", maxWidth: "1400px" }}>
         {!audioUnlocked && (
           <Typography
             variant="body2"
             color="warning.main"
-            sx={{ textAlign: "center", mb: 2 }}
+            sx={{
+              textAlign: "center",
+              mb: 2,
+              mt: { xs: 3, sm: 2 },
+              px: { xs: 1 },
+              fontSize: { xs: "0.8rem", sm: "0.9rem" },
+              whiteSpace: "normal",
+              lineHeight: 1.3,
+            }}
           >
             🔒 Click anywhere to unlock audio playback
           </Typography>
@@ -127,15 +121,30 @@ const PlayerPage = () => {
           flexDirection={{ xs: "column", md: "row" }}
           justifyContent="space-between"
           alignItems="flex-start"
-          gap={{ xs: 4, md: 6 }}
+          sx={{
+            gap: { xs: 4, md: 0 },
+            borderRadius: 2,
+            overflow: "hidden",
+            boxShadow: 3,
+          }}
         >
           {/* Left Panel: Player */}
           <Box
             flex={1}
             minWidth={{ xs: "100%", md: "50%" }}
-            sx={{ px: { xs: 1, sm: 2 } }}
+            sx={{
+              px: { xs: 1, sm: 2 },
+              borderRight: { md: "1px solid rgba(255,255,255,0.05)" },
+              borderColor: "divider", // 主题色
+            }}
           >
-            <Typography variant="h4" gutterBottom>
+            <Typography
+              variant="h4"
+              gutterBottom
+              sx={{
+                display: { xs: "none", sm: "block" },
+              }}
+            >
               Music Player
             </Typography>
 
@@ -181,7 +190,13 @@ const PlayerPage = () => {
           <Box
             flex={1}
             minWidth={{ xs: "100%", md: "50%" }}
-            sx={{ px: { xs: 1, sm: 2 } }}
+            sx={{
+              px: { xs: 1, sm: 2 },
+              "& .MuiTypography-root": {
+                fontSize: { xs: "0.9rem", sm: "1rem" }, // 手机小一点
+                lineHeight: 1.4,
+              },
+            }}
           >
             <CurrentPlaylist
               currentPlaylist={currentPlaylist}

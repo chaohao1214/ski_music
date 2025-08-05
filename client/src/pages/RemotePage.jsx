@@ -20,6 +20,7 @@ import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
 import StopIcon from "@mui/icons-material/Stop";
 import CurrentPlaylist from "../components/CurrentPlaylist";
 import SongLibrary from "../components/SongLibrary";
+import BackButton from "../components/BackButton";
 
 const RemotePage = () => {
   const dispatch = useDispatch();
@@ -86,21 +87,40 @@ const RemotePage = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        p: 4,
+        p: { xs: 2, md: 4 },
+        bgcolor: "background.default",
+        color: "text.primary",
       }}
     >
+      <BackButton />
       <Box
         sx={{
           display: "flex",
           flexDirection: { xs: "column", md: "row" },
           width: "100%",
           maxWidth: "1400px",
-          gap: 4,
+          gap: { xs: 2, md: 4 },
+          borderRadius: 2,
+          overflow: "hidden",
+          boxShadow: { md: 3, xs: "none" },
         }}
       >
         {/* Left Panel */}
-        <Box flex={1}>
-          <Typography variant="h4" gutterBottom>
+        <Box
+          flex={1}
+          sx={{
+            px: { xs: 1, sm: 2 },
+            borderRight: {
+              md: "1px solid",
+            },
+            borderColor: { md: "divider" },
+          }}
+        >
+          <Typography
+            variant="h4"
+            gutterBottom
+            sx={{ display: { xs: "none", sm: "block" } }}
+          >
             Music Controller
           </Typography>
 
@@ -154,7 +174,7 @@ const RemotePage = () => {
         </Box>
 
         {/* Right Panel */}
-        <Box flex={1}>
+        <Box flex={1} sx={{ px: { xs: 1, sm: 2 } }}>
           <CurrentPlaylist
             currentPlaylist={currentPlaylist}
             nowPlayingId={playerState.currentSongId}
