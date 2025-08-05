@@ -132,3 +132,98 @@ ski_music/
 │   ├── skating_rink.db
 │   └── README.md
 └── README.md
+```
+
+## 📦 Installation & Setup
+
+> **Prerequisites:**  
+> - Node.js (v18+)  
+> - npm / yarn  
+> - Supabase account (for database & storage)  
+> - PostgreSQL connection string  
+> - Render account (for backend deployment)  
+> - Vercel account (for frontend deployment)
+
+---
+---
+
+###  Clone the Repository
+```bash
+git clone https://github.com/chaohao1214/ski_music.git
+cd ski_music
+```
+
+### 🖥️ Frontend Setup
+
+1. Navigate to the `client` directory:
+    ```bash
+    cd client
+    ```
+
+2. Install dependencies:
+    ```bash
+    npm install
+    # or
+    yarn install
+    ```
+
+3. Create a `.env` file in the `client` directory and add:
+    ```env
+    VITE_API_URL=http://localhost:5000
+    VITE_SOCKET_URL=http://localhost:5000
+    ```
+
+4. Start the development server:
+    ```bash
+    npm run dev
+    # or
+    yarn dev
+    ```
+    The frontend will usually be available at **http://localhost:5173** (Vite's default).
+
+---
+
+### ⚙️ Backend Setup
+
+1. Navigate to the `server` directory:
+    ```bash
+    cd server
+    ```
+
+2. Install dependencies:
+    ```bash
+    npm install
+    # or
+    yarn install
+    ```
+
+3. Create a `.env` file in the `server` directory and add:
+    ```env
+    PORT=5000
+    SUPABASE_URL=your_supabase_url
+    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+    SUPABASE_BUCKET=your_bucket_name
+    DATABASE_URL=your_postgres_connection
+    ```
+
+4. Start the development server:
+    ```bash
+    npm run dev
+    # or
+    yarn dev
+    ```
+    The backend server will typically start on the port specified in your `.env` file (default: **http://localhost:5000**).
+
+---
+
+### 🚀 Deployment
+
+- **Frontend** → [Vercel](https://vercel.com/)  
+- **Backend** → [Render](https://render.com/)  
+- **Database & Storage** → [Supabase](https://supabase.com/)
+
+---
+
+## ✍️ Author
+
+This project is primarily developed and maintained by: **Chaohao Zhu** 👋
