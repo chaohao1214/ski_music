@@ -1,16 +1,12 @@
-import multer from "multer";
-import path from "path";
-import fs from "fs/promises";
 import { query } from "../services/postgresService.js";
 import { supabase } from "../services/supabaseClient.js";
+import { memoryUpload } from "../middleware/fileUploadConfig.js";
 
-const upload = multer({ dest: "temp/" });
-
-export const uploadMiddleware = upload.array("songs", 10);
+export const uploadMiddleware = memoryUpload.array("songs", 10);
 
 export const uploadSongToSupabase = async (req, res) => {
   console.log("Incoming files:", req.files);
-  console.log("Field names:", req.body);
+
   const files = req.files;
   if (!files || files.length === 0) {
     return res.status(400).json({ error: "No files uploaded" });
@@ -21,17 +17,13 @@ export const uploadSongToSupabase = async (req, res) => {
   for (const file of files) {
     try {
       const filename = `${Date.now()}_${file.originalname}`;
-      const filePath = path.resolve(file.path);
 
       const { error } = await supabase.storage
         .from(process.env.SUPABASE_BUCKET)
-        .upload(filename, await fs.readFile(filePath), {
-          contentType: "audio/mpeg",
+        .upload(filename, file.buffer, {
+          contentType: file.mimetype,
           upsert: false,
         });
-
-      // delete tmp files
-      await fs.unlink(filePath);
 
       if (error) {
         console.error(`❌ Upload failed: ${filename}`, error.message);

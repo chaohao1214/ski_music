@@ -12,6 +12,7 @@ import {
   uploadMiddleware,
   uploadSongToSupabase,
 } from "../controllers/uploadController.js";
+import { localUploadMiddleware } from "../middleware/fileUploadConfig.js";
 const router = express.Router();
 
 router.get("/", protect, getAllSongs);
@@ -27,7 +28,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-router.post("/upload", upload.array("songs", 10), addUploadedSong);
+router.post("/upload", localUploadMiddleware, addUploadedSong);
 router.post(
   "/upload-supabase",
   protect,
