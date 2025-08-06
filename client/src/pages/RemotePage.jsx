@@ -11,8 +11,6 @@ import { sendPlayerCommand } from "../features/music/playerSlice";
 import {
   fetchPlaylist,
   removeSongFromPlaylist,
-  reorderPlaylist,
-  updatePlaylistOrder,
 } from "../features/music/playlistSlice";
 import { useNavigate } from "react-router-dom";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
