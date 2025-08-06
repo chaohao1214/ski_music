@@ -20,6 +20,7 @@ const CurrentPlaylist = ({
   onRemove,
   showDelete = true,
   showIndex = false,
+  canReorder = true,
 }) => {
   const dispatch = useDispatch();
   const handleDragEnd = (result) => {
@@ -48,6 +49,7 @@ const CurrentPlaylist = ({
                       key={song.playlistItemId}
                       draggableId={String(song.playlistItemId)}
                       index={index}
+                      isDragDisabled={!canReorder}
                     >
                       {(provided, snapshot) => (
                         <ListItem
