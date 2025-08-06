@@ -25,12 +25,17 @@ const PlayerPage = () => {
   );
   const playerState = useSelector((state) => state.playlist?.playerState);
 
+  const nowPlayingRef = useRef(null);
   const nowPlaying = useMemo(() => {
-    return (
-      currentPlaylist.find((song) => song.id === playerState.currentSongId) ||
-      null
+    const found = currentPlaylist.find(
+      (song) => song.id === playerState.currentSongId
     );
-  }, [playerState.currentSongId]);
+    if (found) {
+      nowPlayingRef.current = found;
+      return found;
+    }
+    return nowPlayingRef.current;
+  }, [playerState.currentSongId, currentPlaylist]);
 
   const [audioUnlocked, setAudioUnlocked] = useState(false);
 
@@ -156,7 +161,7 @@ const PlayerPage = () => {
 
             <AudioPlayer
               ref={audioRef}
-              src={nowPlaying?.url}
+              src={nowPlaying?.url || ""}
               // only happens from home page to player, need audioUnlocked
               autoPlay={audioUnlocked && playerState?.status === "playing"}
               showSkipControls
