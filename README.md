@@ -42,6 +42,19 @@ It allows multiple users to remotely control a shared music player via a web int
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/socketio/socketio-original.svg" alt="Socket.IO" width="50" height="50"/>
 </p>
 
+## 📸 Screenshots
+
+### 🎵 Home Page
+![Home Page](./client/screenshots/landingpage.png)
+
+### 🎵 Player Page
+![Player Page](./client/screenshots/player.png)
+
+### 📱 Remote Control Page
+![Remote Control](./client/screenshots/remote.png)
+
+### 📤 Upload Dialog
+![Log In](./client/screenshots/login.png)
 
 
 ---
