@@ -82,14 +82,12 @@ const RemotePage = () => {
   return (
     <Box
       sx={{
-        width: "100vw",
-        minHeight: "100vh",
         display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        p: { xs: 2, md: 4 },
-        bgcolor: "background.default",
-        color: "text.primary",
+        flexDirection: { xs: "column", sm: "row" },
+        alignItems: { xs: "flex-start", sm: "center" },
+        justifyContent: "space-between",
+        gap: 1,
+        mb: 2,
       }}
     >
       <BackButton />
@@ -124,11 +122,24 @@ const RemotePage = () => {
             Music Controller
           </Typography>
 
-          <Box sx={{ mb: 2 }}>
-            <Typography component="span" sx={{ mr: 2 }}>
+          <Box
+            sx={{
+              mb: 2,
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 1,
+            }}
+          >
+            <Typography component="span" sx={{ mr: { sm: 2 } }}>
               Welcome, {user?.username} ({user?.role})
             </Typography>
-            <Button onClick={handleLogout} sx={{ color: "white" }}>
+            <Button
+              onClick={handleLogout}
+              sx={{
+                color: "white",
+                alignSelf: { xs: "flex-start", sm: "center" },
+              }}
+            >
               Logout
             </Button>
           </Box>
