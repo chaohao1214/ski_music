@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { apiDelete, apiGet, apiPost } from "../../utils/apiClient";
+import { apiDelete, apiGet, apiPost, apiPut } from "../../utils/apiClient";
 
 export const fetchPlaylist = createAsyncThunk(
   "playlist/fetchPlaylist",
@@ -21,6 +21,18 @@ export const addSongToPlaylist = createAsyncThunk(
       return addedSong;
     } catch (error) {
       return rejectWithValue(error.message || "Failed to add song");
+    }
+  }
+);
+
+export const reorderPlaylist = createAsyncThunk(
+  "playlist/reorderPlaylist",
+  async (playlistOrder, { rejectWithValue }) => {
+    try {
+      const data = await apiPut("/api/playlist/reorder", { playlistOrder });
+      return data.playlist;
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to reorder playlist");
     }
   }
 );
@@ -110,6 +122,12 @@ const playlistSlice = createSlice({
         state.currentPlaylist = state.currentPlaylist.filter(
           (song) => song.playlistItemId !== action.payload
         );
+      })
+      .addCase(reorderPlaylist.fulfilled, (state, action) => {
+        state.currentPlaylist = action.payload;
+      })
+      .addCase(reorderPlaylist.rejected, (state, action) => {
+        console.error("Failed to reorder playlist:", action.payload);
       });
   },
 });

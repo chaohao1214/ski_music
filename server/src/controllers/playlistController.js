@@ -4,6 +4,7 @@ import {
   setCurrentSong,
 } from "../services/playerStateService.js";
 import { query } from "../services/postgresService.js";
+import { supabase } from "../services/supabaseClient.js";
 /**
  * @desc    Add a song to the current playlist
  * @route   POST /api/playlist/add
@@ -97,36 +98,45 @@ export const removeSongFromPlaylist = async (req, res) => {
 };
 
 /**
- * @desc    Update the order of songs in the playlist
- * @route   PUT /api/playlist/reorder
- * @access  Protected
+ * Update the playlist order in the database
+ * @param {Array<string>} orderedPlaylistItemIds - Array of playlist_item_id in the desired order
  */
 
 export const updatePlaylistOrder = async (req, res) => {
-  const { orderedIds } = req.body;
+  const { playlistOrder } = req.body;
 
-  if (!Array.isArray(orderedIds)) {
-    return res
-      .status(400)
-      .json({ message: "Request body must contain an array of 'orderedIds'." });
+  if (!Array.isArray(playlistOrder) || playlistOrder.length === 0) {
+    return res.status(400).json({ error: "Invalid playlist order array" });
   }
 
   try {
-    // Use a transaction to ensure consistent update
-    await query("BEGIN");
+    // Call the Supabase SQL function
+    const { error } = await supabase.rpc("update_playlist_order", {
+      order_data: playlistOrder,
+    });
 
-    for (let i = 0; i < orderedIds.length; i++) {
-      await query(
-        "UPDATE playlist_items SET position = $1 WHERE playlist_item_id = $2",
-        [i + 1, orderedIds[i]]
-      );
+    if (error) {
+      console.error("Supabase RPC error:", error);
+      return res.status(500).json({ error: error.message });
     }
 
-    await query("COMMIT");
+    // Fetch updated playlist after reorder
+    const { data: updatedPlaylist, error: fetchError } = await supabase
+      .from("playlist_items")
+      .select("playlistItemId:playlist_item_id, song_id, position")
+      .order("position", { ascending: true });
+
+    if (fetchError) {
+      console.error("Error fetching updated playlist:", fetchError);
+      return res.status(500).json({ error: fetchError.message });
+    }
+
     getLatestStateAndBroadcast(req.io);
-    res.status(200).json({ message: "Playlist reordered successfully." });
+    res.json({
+      message: "Playlist order updated successfully",
+      playlist: updatedPlaylist,
+    });
   } catch (error) {
-    await query("ROLLBACK");
     console.error("Error reordering playlist:", error);
     res
       .status(500)

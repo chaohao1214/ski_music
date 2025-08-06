@@ -11,6 +11,7 @@ import { sendPlayerCommand } from "../features/music/playerSlice";
 import {
   fetchPlaylist,
   removeSongFromPlaylist,
+  reorderPlaylist,
   updatePlaylistOrder,
 } from "../features/music/playlistSlice";
 import { useNavigate } from "react-router-dom";
@@ -184,6 +185,11 @@ const RemotePage = () => {
             }
             onReorder={(newOrder) => {
               dispatch(updatePlaylistOrder(newOrder));
+              const playlistOrder = newOrder.map((song, index) => ({
+                playlistItemId: song.playlistItemId,
+                position: index + 1,
+              }));
+              dispatch(reorderPlaylist(playlistOrder));
             }}
           />
         </Box>

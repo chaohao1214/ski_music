@@ -68,6 +68,23 @@ export const apiDelete = async (url) => {
 };
 
 /**
+ * A generic PUT request handler
+ * @param {string} url - The endpoint url
+ * @param {object} data - The data to be sent in the request body
+ * @returns {Promise<any>}
+ */
+export const apiPut = async (url, data) => {
+  try {
+    const response = await apiClient.put(url, data);
+    return response.data;
+  } catch (error) {
+    throw error.response
+      ? error.response.data
+      : new Error("An unknown network error occurred");
+  }
+};
+
+/**
  * Upload files using FormData (for file uploads)
  * @param {string} url - The endpoint URL
  * @param {FormData} formData - The form data containing files
