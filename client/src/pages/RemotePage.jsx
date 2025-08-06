@@ -183,14 +183,6 @@ const RemotePage = () => {
             onRemove={(playlistItemId) =>
               dispatch(removeSongFromPlaylist(playlistItemId))
             }
-            onReorder={(newOrder) => {
-              dispatch(updatePlaylistOrder(newOrder));
-              const playlistOrder = newOrder.map((song, index) => ({
-                playlistItemId: song.playlistItemId,
-                position: index + 1,
-              }));
-              dispatch(reorderPlaylist(playlistOrder));
-            }}
           />
         </Box>
       </Box>

@@ -11,15 +11,17 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import PropTypes from "prop-types";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { useDispatch } from "react-redux";
+import { reorderPlaylistAndSync } from "../features/music/playlistSlice";
 
 const CurrentPlaylist = ({
   currentPlaylist,
   nowPlayingId,
   onRemove,
-  onReorder,
   showDelete = true,
   showIndex = false,
 }) => {
+  const dispatch = useDispatch();
   const handleDragEnd = (result) => {
     if (!result.destination) return;
 
@@ -27,9 +29,7 @@ const CurrentPlaylist = ({
     const [moved] = reordered.splice(result.source.index, 1);
     reordered.splice(result.destination.index, 0, moved);
 
-    if (onReorder) {
-      onReorder(reordered);
-    }
+    dispatch(reorderPlaylistAndSync(reordered));
   };
 
   return (

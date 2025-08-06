@@ -25,10 +25,18 @@ export const addSongToPlaylist = createAsyncThunk(
   }
 );
 
-export const reorderPlaylist = createAsyncThunk(
-  "playlist/reorderPlaylist",
-  async (playlistOrder, { rejectWithValue }) => {
+export const reorderPlaylistAndSync = createAsyncThunk(
+  "playlist/reorderPlaylistAndSync",
+  async (newOrder, { dispatch, rejectWithValue }) => {
     try {
+      // Optimistic update in Redux
+      dispatch(updatePlaylistOrder(newOrder));
+
+      // Build payload for backend
+      const playlistOrder = newOrder.map((song, index) => ({
+        playlistItemId: song.playlistItemId,
+        position: index + 1,
+      }));
       const data = await apiPut("/api/playlist/reorder", { playlistOrder });
       return data.playlist;
     } catch (error) {
@@ -123,10 +131,11 @@ const playlistSlice = createSlice({
           (song) => song.playlistItemId !== action.payload
         );
       })
-      .addCase(reorderPlaylist.fulfilled, (state, action) => {
+
+      .addCase(reorderPlaylistAndSync.fulfilled, (state, action) => {
         state.currentPlaylist = action.payload;
       })
-      .addCase(reorderPlaylist.rejected, (state, action) => {
+      .addCase(reorderPlaylistAndSync.rejected, (state, action) => {
         console.error("Failed to reorder playlist:", action.payload);
       });
   },
