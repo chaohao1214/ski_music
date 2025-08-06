@@ -17,7 +17,6 @@ export function usePlayerSocket(dispatch, audioRef, audioUnlocked, nowPlaying) {
 
     // Handle player control commands
     const handleExecuteCommand = (data) => {
-      console.log("Player Client: Received player:execute", data);
       const audio = audioRef.current?.audio?.current;
       if (!audio) return;
 

@@ -1,5 +1,5 @@
 import { Box, Button, Paper, Typography } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchPlaylist,
@@ -25,9 +25,12 @@ const PlayerPage = () => {
   );
   const playerState = useSelector((state) => state.playlist?.playerState);
 
-  const nowPlaying =
-    currentPlaylist.find((song) => song.id === playerState.currentSongId) ||
-    null;
+  const nowPlaying = useMemo(() => {
+    return (
+      currentPlaylist.find((song) => song.id === playerState.currentSongId) ||
+      null
+    );
+  }, [playerState.currentSongId]);
 
   const [audioUnlocked, setAudioUnlocked] = useState(false);
 

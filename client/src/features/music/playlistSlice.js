@@ -74,7 +74,15 @@ const playlistSlice = createSlice({
       state.playerState = player;
     },
     updatePlaylistOrder(state, action) {
-      state.currentPlaylist = action.payload;
+      const updatedOrder = action.payload;
+      const songMap = new Map(
+        state.currentPlaylist.map((song) => [song.playlistItemId, song])
+      );
+      state.currentPlaylist.length = 0;
+      updatedOrder.forEach(({ playlistItemId }) => {
+        const song = songMap.get(playlistItemId);
+        if (song) state.currentPlaylist.push(song);
+      });
     },
   },
   extraReducers: (builder) => {
