@@ -53,6 +53,9 @@ const playlistSlice = createSlice({
       state.currentPlaylist = playlist;
       state.playerState = player;
     },
+    updatePlaylistOrder(state, action) {
+      state.currentPlaylist = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -111,7 +114,10 @@ const playlistSlice = createSlice({
   },
 });
 
-export const { setPlaylistState, updatePlayerAndPlaylist } =
-  playlistSlice.actions;
+export const {
+  setPlaylistState,
+  updatePlayerAndPlaylist,
+  updatePlaylistOrder,
+} = playlistSlice.actions;
 
 export default playlistSlice.reducer;

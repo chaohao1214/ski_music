@@ -1,7 +1,10 @@
 import { Box, Button, Paper, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchPlaylist } from "../features/music/playlistSlice";
+import {
+  fetchPlaylist,
+  updatePlaylistOrder,
+} from "../features/music/playlistSlice";
 import AudioPlayer from "react-h5-audio-player";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import "react-h5-audio-player/lib/styles.css";
@@ -201,6 +204,9 @@ const PlayerPage = () => {
             <CurrentPlaylist
               currentPlaylist={currentPlaylist}
               nowPlayingId={playerState.currentSongId}
+              onReorder={(newOrder) => {
+                dispatch(updatePlaylistOrder(newOrder));
+              }}
             />
           </Box>
         </Box>

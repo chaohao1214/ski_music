@@ -11,6 +11,7 @@ import { sendPlayerCommand } from "../features/music/playerSlice";
 import {
   fetchPlaylist,
   removeSongFromPlaylist,
+  updatePlaylistOrder,
 } from "../features/music/playlistSlice";
 import { useNavigate } from "react-router-dom";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
@@ -181,6 +182,9 @@ const RemotePage = () => {
             onRemove={(playlistItemId) =>
               dispatch(removeSongFromPlaylist(playlistItemId))
             }
+            onReorder={(newOrder) => {
+              dispatch(updatePlaylistOrder(newOrder));
+            }}
           />
         </Box>
       </Box>
