@@ -25,6 +25,7 @@ const PlayerPage = () => {
   );
   const playerState = useSelector((state) => state.playlist?.playerState);
 
+  // need a better way to solve unnecessary render
   const nowPlayingRef = useRef(null);
   const nowPlaying = useMemo(() => {
     const found = currentPlaylist.find(

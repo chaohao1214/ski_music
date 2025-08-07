@@ -9,8 +9,11 @@ import {
 import { query } from "../services/postgresService.js";
 
 import dotenv from "dotenv";
-
 dotenv.config();
+
+const isProduction = process.env.NODE_ENV === "production";
+const SUPABASE_BASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET;
 export const getPlayerStateFromDB = async () => {
   const result = await query(`
     SELECT
@@ -163,8 +166,8 @@ export const getPlayerState = async (req, res) => {
       player,
       playlist: playlistResult.rows.map((row) => ({
         ...row,
-        url: row.url.startsWith("https://")
-          ? row.url
+        url: isProduction
+          ? `${SUPABASE_BASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${row.url}`
           : `http://localhost:3001/uploads/${row.url}`,
       })),
     });
