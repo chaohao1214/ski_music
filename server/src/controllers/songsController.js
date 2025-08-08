@@ -18,32 +18,6 @@ export const getAllSongs = async (req, res) => {
   }
 };
 
-// @desc    Add a new song to the library
-// @route   POST /api/songs
-// @access  Admin only
-
-export const addSong = async (req, res) => {
-  const { title, artist, duration, url } = req.body;
-
-  if (!title || !duration || !url) {
-    return res
-      .status(400)
-      .json({ message: "Please provide title, duration, and url" });
-  }
-
-  try {
-    const result = await query(
-      "INSERT INTO songs (title, artist, duration, url) VALUES ($1, $2, $3, $4) RETURNING id",
-      [title, artist, duration, url]
-    );
-    res.status(201).json({ id: result.rows[0].id, ...req.body });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error adding song", error: error.message });
-  }
-};
-
 export const addUploadedSong = async (req, res) => {
   try {
     const insertedSongs = [];
