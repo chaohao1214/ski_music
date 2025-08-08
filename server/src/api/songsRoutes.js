@@ -28,11 +28,12 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-router.post("/upload", localUploadMiddleware, addUploadedSong);
+router.post("/upload", protect, localUploadMiddleware, admin, addUploadedSong);
 router.post(
   "/upload-supabase",
   protect,
   uploadMiddleware,
+  admin,
   uploadSongToSupabase
 );
 router.delete("/:songId", deleteSong);
