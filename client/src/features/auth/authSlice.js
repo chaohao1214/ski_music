@@ -3,6 +3,18 @@ import { apiPost, apiGet, setAuthToken } from "../../utils/apiClient";
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
 
+export const registerUser = createAsyncThunk(
+  "auth/register",
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const data = await apiPost("/api/auth/register", credentials);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || "Register failed");
+    }
+  }
+);
+
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (credentials, { rejectWithValue }) => {
@@ -65,12 +77,16 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.status = "succeeded";
-        const { token } = action.payload;
+        const { id, username, role, token } = action.payload;
+
         state.token = token;
+        state.user = { id, username, role };
         state.isLoginModalOpen = false;
+        state.isAuthenticated = true;
 
         //persist token and set it for future api call
         localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify({ id, username, role }));
         setAuthToken(token);
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -90,6 +106,19 @@ const authSlice = createSlice({
         state.token = null;
         localStorage.removeItem("token");
         setAuthToken(null);
+      })
+      .addCase(registerUser.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.user = action.payload;
+        state.isAuthenticated = false;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
       });
   },
 });

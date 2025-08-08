@@ -40,11 +40,12 @@ export const registerUser = async (req, res) => {
   const password_hash = bcrypt.hashSync(password, salt);
 
   try {
+    const role = "general_user";
     const result = await query(
-      "INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3) RETURNING id",
-      [username, password_hash, "user"]
+      "INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING id",
+      [username, password_hash, role]
     );
-    res.status(201).json({ id: result.rows[0].id, username });
+    res.status(201).json({ id: result.rows[0].id, username, role });
   } catch (error) {
     if (error.code === "23505") {
       return res.status(409).json({ message: "Username already exists" });
