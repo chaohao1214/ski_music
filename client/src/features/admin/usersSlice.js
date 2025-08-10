@@ -12,13 +12,16 @@ export const fetchAllUsers = createAsyncThunk(
   }
 );
 
-export const changeUerRole = createAsyncThunk(
-  "admin/changeRole",
-  async ({ userId, role }, { rejectWithValue }) => {
+export const changeUerRolesBulk = createAsyncThunk(
+  "admin/changeRoleBulk",
+  async (changes, { rejectWithValue }) => {
     try {
-      return await apiPatch(`api/auth/${userId}/role`, { role });
+      const payload = {
+        changes: changes.map((item) => ({ id: item.userId, role: item.role })),
+      };
+      return await apiPatch("/api/auth/roles-batch", payload);
     } catch (error) {
-      return rejectWithValue(e.message || "Failed to change role");
+      return rejectWithValue(error.message || "Failed to change role");
     }
   }
 );
@@ -41,10 +44,28 @@ const adminUserSlice = createSlice({
         state.status = "failed";
         state.error = action.payload;
       })
-      .addCase(changeUerRole.fulfilled, (state, action) => {
-        const updated = action.payload;
-        const id = state.list.findIndex((user) => user.id === updated.id);
-        if (id !== -1) state.list[id] = updated;
+      .addCase(changeUerRolesBulk.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(changeUerRolesBulk.fulfilled, (state, action) => {
+        const updatedUsers = action.payload?.users ?? [];
+        for (const updatedUser of updatedUsers) {
+          const existingIndex = state.list.findIndex(
+            (existingUser) => existingUser.id === updatedUser.id
+          );
+          if (existingIndex !== -1) {
+            state.list[existingIndex] = updatedUser;
+          } else {
+            state.list.push(updatedUser);
+          }
+        }
+        state.status = "succeeded";
+        state.error = null;
+      })
+      .addCase(changeUerRolesBulk.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Failed to change roles";
       });
   },
 });

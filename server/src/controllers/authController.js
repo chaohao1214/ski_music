@@ -139,41 +139,95 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-export const updateUserRole = async (req, res) => {
-  const userId = req.params.id;
-  const { role } = req.body;
-
-  if (!["general_user", "super_user", "player", "admin"].includes(role)) {
-    return res.status(400).json({ message: "Invalid role" });
+export const updateUserRoleBulk = async (req, res) => {
+  const { changes } = req.body;
+  if (!Array.isArray(changes) || changes.length === 0) {
+    return res
+      .status(400)
+      .json({ message: "Changes must be a non-empty array" });
   }
+
+  const allowedRoles = new Set([
+    "general_user",
+    "super_user",
+    "player",
+    "admin",
+  ]);
+
+  for (const changeItem of changes) {
+    if (
+      !changeItem?.id ||
+      !changeItem?.role ||
+      !allowedRoles.has(changeItem.role)
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid payload in changes array" });
+    }
+  }
+
   try {
-    const targetUserResult = await query(
-      "SELECT id, role FROM users WHERE id = $1",
-      [userId]
+    const ids = changes.map((changeItem) => changeItem.id);
+    const currentResult = await query(
+      "SELECT id, role FROM users WHERE id = ANY($1::uuid[])",
+      [ids]
     );
-    const targetUser = targetUserResult.rows[0];
-    if (targetUser.role === "admin" && role !== "admin") {
-      const adminCountResult = await query(
-        "SELECT COUNT(*)::int AS cnt FROM users WHERE role = 'admin'"
-      );
-      const adminCount = adminCountResult.rows[0]?.cnt || 0;
-      if (adminCount <= 1) {
+    const currentById = new Map(
+      currentResult.rows.map((row) => [row.id, row.role])
+    );
+
+    // 2. protected the last admin
+    const adminsCountResult = await query(
+      "SELECT COUNT(*)::int AS cnt FROM users WHERE role = 'admin'"
+    );
+    const currentAdminCount = adminsCountResult.rows[0]?.cnt || 0;
+
+    let demotionsFromAdmin = 0;
+    let promotionsToAdmin = 0;
+
+    for (const changeItem of changes) {
+      const currentRole = currentById.get(changeItem.id);
+      if (!currentRole) {
         return res
-          .status(409)
-          .json({ message: "Cannot demote the last admin" });
+          .status(404)
+          .json({ message: `User not found: ${changeItem.id}` });
+      }
+      if (currentRole === "admin" && changeItem.role !== "admin") {
+        demotionsFromAdmin += 1;
+      }
+      if (currentRole !== "admin" && changeItem.role === "admin") {
+        promotionsToAdmin += 1;
       }
     }
-    const result = await query(
-      "UPDATE users SET role = $1 WHERE id = $2 RETURNING id, username, role",
-      [role, userId]
-    );
-
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: "User not found" });
+    const finalAdminCount =
+      currentAdminCount - demotionsFromAdmin + promotionsToAdmin;
+    if (finalAdminCount < 1) {
+      return res.status(409).json({ message: "Cannot demote the last admin" });
     }
-    return res.json(result.rows[0]);
+    await query("BEGIN");
+    const sql = `
+      WITH input AS (
+        SELECT *
+        FROM json_to_recordset($1::json)
+        AS t(id uuid, role text)
+      )
+      UPDATE users AS u
+      SET role = input.role
+      FROM input
+      WHERE u.id = input.id
+      RETURNING u.id, u.username, u.role
+    `;
+
+    const updateResult = await query(sql, [JSON.stringify(changes)]);
+    await query("COMMIT");
+
+    return res.json({
+      updatedCount: updateResult.rowCount,
+      users: updateResult.rows, // [{ id, username, role }]
+    });
   } catch (error) {
-    console.error("Role update error:", error);
-    res.status(500).json({ message: "Server error" });
+    await query("ROLLBACK");
+    console.error("Bulk role update error:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 };
