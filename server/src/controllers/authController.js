@@ -126,3 +126,54 @@ export const getMe = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const result = await query(
+      "SELECT id, username, role FROM users ORDER BY username ASC"
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Failed to fetch users:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const updateUserRole = async (req, res) => {
+  const userId = req.params.id;
+  const { role } = req.body;
+
+  if (!["general_user", "super_user", "player", "admin"].includes(role)) {
+    return res.status(400).json({ message: "Invalid role" });
+  }
+  try {
+    const targetUserResult = await query(
+      "SELECT id, role FROM users WHERE id = $1",
+      [userId]
+    );
+    const targetUser = targetUserResult.rows[0];
+    if (targetUser.role === "admin" && role !== "admin") {
+      const adminCountResult = await query(
+        "SELECT COUNT(*)::int AS cnt FROM users WHERE role = 'admin'"
+      );
+      const adminCount = adminCountResult.rows[0]?.cnt || 0;
+      if (adminCount <= 1) {
+        return res
+          .status(409)
+          .json({ message: "Cannot demote the last admin" });
+      }
+    }
+    const result = await query(
+      "UPDATE users SET role = $1 WHERE id = $2 RETURNING id, username, role",
+      [role, userId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.json(result.rows[0]);
+  } catch (error) {
+    console.error("Role update error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
