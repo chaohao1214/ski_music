@@ -105,4 +105,15 @@ export const apiUpload = async (url, formData) => {
   }
 };
 
+export const apiPatch = async (url, data) => {
+  try {
+    const res = await apiClient.patch(url, data);
+    return res.data;
+  } catch (error) {
+    throw error.response
+      ? error.response.data
+      : new Error("An unknown network error occurred");
+  }
+};
+
 export default apiClient;

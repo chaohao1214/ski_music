@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Box, Button, IconButton, Tooltip, Typography } from "@mui/material";
 import { logout } from "../features/auth/authSlice";
-
+import { Link as RouterLink } from "react-router-dom";
 import { useSocket } from "../contexts/SocketContext";
 import UploadZone from "../components/UploadZone";
 import { enqueueSnackbar } from "notistack";
@@ -21,6 +21,7 @@ import StopIcon from "@mui/icons-material/Stop";
 import CurrentPlaylist from "../components/CurrentPlaylist";
 import SongLibrary from "../components/SongLibrary";
 import BackButton from "../components/BackButton";
+import { formatRole } from "./roles";
 
 const RemotePage = () => {
   const dispatch = useDispatch();
@@ -29,6 +30,7 @@ const RemotePage = () => {
   const { user } = useSelector((state) => state.auth);
   const { currentPlaylist } = useSelector((state) => state.playlist);
   const { playerState } = useSelector((state) => state.playlist);
+
   useEffect(() => {
     socket.connect();
 
@@ -126,13 +128,22 @@ const RemotePage = () => {
 
           <Box sx={{ mb: 2 }}>
             <Typography component="span" sx={{ mr: 2 }}>
-              Welcome, {user?.username} ({user?.role})
+              Welcome, {user?.username} ({formatRole(user?.role)})
             </Typography>
             <Button onClick={handleLogout} sx={{ color: "white" }}>
               Logout
             </Button>
           </Box>
-
+          {user?.role === "admin" && (
+            <Button
+              size="small"
+              variant="outlined"
+              component={RouterLink}
+              to="/admin/users"
+            >
+              User Admin
+            </Button>
+          )}
           <Box sx={{ mb: 2, display: "flex", gap: 1 }}>
             <Box sx={{ mb: 2, display: "flex", gap: 1 }}>
               <Tooltip title="Previous">

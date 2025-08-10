@@ -9,6 +9,8 @@ import { useSocket } from "./contexts/SocketContext";
 import PlayerPage from "./pages/PlayerPage";
 import RemotePage from "./pages/RemotePage";
 import { updatePlayerAndPlaylist } from "./features/music/playlistSlice";
+import RequireAdmin from "./components/RequireAdmin";
+import AdminUserManagement from "./components/AdminUserManagement";
 
 const token = localStorage.getItem("token");
 if (token) {
@@ -52,6 +54,14 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/player" element={<PlayerPage />} />
         <Route path="/remote" element={<RemotePage />} />
+        <Route
+          path="/admin/users"
+          element={
+            <RequireAdmin>
+              <AdminUserManagement />
+            </RequireAdmin>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
