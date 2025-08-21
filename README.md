@@ -3,6 +3,13 @@
 **Ski Music** is a real-time music playback and control system built with **React**, **Redux**, **Node.js**, **Express**, and **WebSocket**.  
 It allows multiple users to remotely control a shared music player via a web interface — perfect for use cases like ice rinks, gyms, cafés, and events.
 
+This app supports role-based permission control to ensure only authorized users can perform certain operations. There are four user roles: `admin`, `super_user`, `player`, and `general_user`. Each role is associated with a set of capabilities:
+
+- **admin**: Full access. Can upload songs, manage playlists, control playback, and manage user roles.
+- **super_user / player**: Can add, remove, and reorder songs in the playlist, as well as control playback.
+- **general_user**: Can add songs to the playlist, but cannot control playback or modify the queue.
+
+This system ensures operational safety while enabling collaborative control over music playback in shared environments like ice rinks or public venues.
 ---
 
 ## ✨ Features
@@ -55,6 +62,9 @@ It allows multiple users to remotely control a shared music player via a web int
 
 ### 📤 Upload Dialog
 ![Log In](./client/screenshots/login.png)
+
+### 🛡️ Manage User Roles
+![Log In](./client/screenshots/changeRole.png)
 
 
 ---
