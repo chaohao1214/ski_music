@@ -23,6 +23,7 @@ import {
 import { formatRole, ROLE_OPTIONS } from "../pages/roles";
 import { useState } from "react";
 import { useMemo } from "react";
+import BackButton from "./BackButton";
 
 const AdminUserManagement = () => {
   const dispatch = useDispatch();
@@ -82,6 +83,7 @@ const AdminUserManagement = () => {
 
   return (
     <Box sx={{ p: 3, maxWidth: 900, mx: "auto" }}>
+      <BackButton to="/remote" label="Back" />
       <Stack
         direction="row"
         alignItems="center"
