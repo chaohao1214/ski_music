@@ -1,4 +1,4 @@
-import { Box, Button, Paper, Typography } from "@mui/material";
+import { Box, Paper, Typography } from "@mui/material";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -6,23 +6,22 @@ import {
   updatePlaylistOrder,
 } from "../features/music/playlistSlice";
 import AudioPlayer from "react-h5-audio-player";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import "react-h5-audio-player/lib/styles.css";
-import { useNavigate } from "react-router-dom";
 
+import "react-h5-audio-player/lib/styles.css";
 import CurrentPlaylist from "../components/CurrentPlaylist";
 import { sendPlayerCommand } from "../features/music/playerSlice";
 import { usePlayerSocket } from "../hooks/usePlayerSocket";
 import BackButton from "../components/BackButton";
+import { canDo } from "../utils/permissions";
 
 const PlayerPage = () => {
   const audioRef = useRef();
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const currentPlaylist = useSelector(
     (state) => state.playlist?.currentPlaylist
   );
+  const { user } = useSelector((state) => state.auth);
   const playerState = useSelector((state) => state.playlist?.playerState);
 
   // need a better way to solve unnecessary render
@@ -39,6 +38,7 @@ const PlayerPage = () => {
   }, [playerState.currentSongId, currentPlaylist]);
 
   const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const canControl = canDo(user?.role, "controlPlayback");
 
   useEffect(() => {
     dispatch(fetchPlaylist());
@@ -165,7 +165,7 @@ const PlayerPage = () => {
               src={nowPlaying?.url || ""}
               // only happens from home page to player, need audioUnlocked
               autoPlay={audioUnlocked && playerState?.status === "playing"}
-              showSkipControls
+              showSkipControls={canControl}
               showJumpControls={false}
               onPlay={() => console.log("Playing")}
               onPause={() => console.log("Paused")}

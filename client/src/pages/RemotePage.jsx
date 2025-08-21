@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Box, Button, IconButton, Tooltip, Typography } from "@mui/material";
 import { logout } from "../features/auth/authSlice";
@@ -32,6 +32,10 @@ const RemotePage = () => {
   const { currentPlaylist } = useSelector((state) => state.playlist);
   const { playerState } = useSelector((state) => state.playlist);
 
+  const canControl = useMemo(
+    () => canDo(user?.role, "controlPlayback"),
+    [user?.role]
+  );
   useEffect(() => {
     socket.connect();
 
@@ -145,40 +149,41 @@ const RemotePage = () => {
               User Admin
             </Button>
           )}
-          <Box sx={{ mb: 2, display: "flex", gap: 1 }}>
+          {canControl && (
             <Box sx={{ mb: 2, display: "flex", gap: 1 }}>
-              <Tooltip title="Previous">
-                <IconButton onClick={handlePrev}>
-                  <SkipPreviousIcon />
-                </IconButton>
-              </Tooltip>
+              <Box sx={{ mb: 2, display: "flex", gap: 1 }}>
+                <Tooltip title="Previous">
+                  <IconButton onClick={handlePrev}>
+                    <SkipPreviousIcon />
+                  </IconButton>
+                </Tooltip>
 
-              <Tooltip
-                title={playerState.status === "playing" ? "Pause" : "Play"}
-              >
-                <IconButton onClick={handlePlayPause}>
-                  {playerState.status === "playing" ? (
-                    <PauseIcon />
-                  ) : (
-                    <PlayArrowIcon />
-                  )}
-                </IconButton>
-              </Tooltip>
+                <Tooltip
+                  title={playerState.status === "playing" ? "Pause" : "Play"}
+                >
+                  <IconButton onClick={handlePlayPause}>
+                    {playerState.status === "playing" ? (
+                      <PauseIcon />
+                    ) : (
+                      <PlayArrowIcon />
+                    )}
+                  </IconButton>
+                </Tooltip>
 
-              <Tooltip title="Next">
-                <IconButton onClick={handleNext}>
-                  <SkipNextIcon />
-                </IconButton>
-              </Tooltip>
+                <Tooltip title="Next">
+                  <IconButton onClick={handleNext}>
+                    <SkipNextIcon />
+                  </IconButton>
+                </Tooltip>
 
-              <Tooltip title="Stop">
-                <IconButton onClick={handleStop}>
-                  <StopIcon />
-                </IconButton>
-              </Tooltip>
+                <Tooltip title="Stop">
+                  <IconButton onClick={handleStop}>
+                    <StopIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </Box>
-          </Box>
-
+          )}
           <Box>
             {canDo(user?.role, "uploadSong") && <UploadZone />}
             <SongLibrary />
