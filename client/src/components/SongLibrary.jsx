@@ -23,11 +23,13 @@ import {
   fetchPlaylist,
 } from "../features/music/playlistSlice";
 import { enqueueSnackbar } from "notistack";
+import { canDo } from "../utils/permissions";
 
 const SongLibrary = () => {
   const dispatch = useDispatch();
   const { songLibrary, status } = useSelector((state) => state.songs);
   const { currentPlaylist } = useSelector((state) => state.playlist);
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(fetchSongLibrary());
@@ -85,7 +87,7 @@ const SongLibrary = () => {
                 </Tooltip>
                 <Tooltip title="Remove song from song library">
                   <IconButton onClick={() => handleDeleteSong(song.id)}>
-                    <DeleteIcon />
+                    {canDo(user?.role, "removeFromList") && <DeleteIcon />}
                   </IconButton>
                 </Tooltip>
               </>

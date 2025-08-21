@@ -11,8 +11,9 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import PropTypes from "prop-types";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { reorderPlaylistAndSync } from "../features/music/playlistSlice";
+import { canDo } from "../utils/permissions";
 
 const CurrentPlaylist = ({
   currentPlaylist,
@@ -20,9 +21,9 @@ const CurrentPlaylist = ({
   onRemove,
   showDelete = true,
   showIndex = false,
-  canReorder = true,
 }) => {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const handleDragEnd = (result) => {
     if (!result.destination) return;
 
@@ -49,7 +50,7 @@ const CurrentPlaylist = ({
                       key={song.playlistItemId}
                       draggableId={String(song.playlistItemId)}
                       index={index}
-                      isDragDisabled={!canReorder}
+                      isDragDisabled={!canDo(user?.role, "reorderPlaylist")}
                     >
                       {(provided, snapshot) => (
                         <ListItem
@@ -79,7 +80,9 @@ const CurrentPlaylist = ({
                                   edge="end"
                                   onClick={() => onRemove(song.playlistItemId)}
                                 >
-                                  <DeleteIcon />
+                                  {canDo(user?.role, "removeFromList") && (
+                                    <DeleteIcon />
+                                  )}
                                 </IconButton>
                               </Tooltip>
                             ) : null

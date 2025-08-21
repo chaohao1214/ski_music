@@ -17,14 +17,16 @@ router.get("/", protect, getAllSongs);
 
 //only admins can add new songs
 
-router.post("/upload", protect, localUploadMiddleware, admin, addUploadedSong);
+router.post("/upload", protect, admin, localUploadMiddleware, addUploadedSong);
 router.post(
   "/upload-supabase",
   protect,
-  uploadMiddleware,
   admin,
+  uploadMiddleware,
   uploadSongToSupabase
 );
-router.delete("/:songId", deleteSong);
+
+// only admin can delete the song
+router.delete("/:songId", protect, admin, deleteSong);
 
 export default router;

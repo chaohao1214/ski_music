@@ -22,6 +22,7 @@ import CurrentPlaylist from "../components/CurrentPlaylist";
 import SongLibrary from "../components/SongLibrary";
 import BackButton from "../components/BackButton";
 import { formatRole } from "./roles";
+import { canDo } from "../utils/permissions";
 
 const RemotePage = () => {
   const dispatch = useDispatch();
@@ -179,7 +180,7 @@ const RemotePage = () => {
           </Box>
 
           <Box>
-            <UploadZone />
+            {canDo(user?.role, "uploadSong") && <UploadZone />}
             <SongLibrary />
           </Box>
         </Box>
