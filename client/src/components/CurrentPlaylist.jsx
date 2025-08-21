@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   List,
   ListItem,
@@ -22,16 +22,51 @@ const CurrentPlaylist = ({
   showDelete = true,
   showIndex = false,
 }) => {
+  // 1) Local view list for optimistic rendering while reordering.
+  const [viewList, setViewList] = useState(currentPlaylist || []);
+  const [isReordering, setIsReordering] = useState(false);
+
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const handleDragEnd = (result) => {
+
+  const canReorder = useMemo(
+    () => canDo(user?.role, "reorderPlaylist"),
+    [user?.role]
+  );
+  const canRemove = useMemo(
+    () => canDo(user?.role, "removeFromList"),
+    [user?.role]
+  );
+  // 2) Sync local view list from global playlist when we are not in a reorder cycle.
+  useEffect(() => {
+    if (!isReordering) setViewList(currentPlaylist || []);
+  }, [currentPlaylist, isReordering]);
+
+  const handleDragEnd = async (result) => {
     if (!result.destination) return;
+    if (!canReorder) return;
 
-    const reordered = Array.from(currentPlaylist);
-    const [moved] = reordered.splice(result.source.index, 1);
-    reordered.splice(result.destination.index, 0, moved);
+    const reorderList = Array.from(viewList);
+    const [moved] = reorderList.splice(result.source.index, 1);
+    reorderList.splice(result.destination.index, 0, moved);
 
-    dispatch(reorderPlaylistAndSync(reordered));
+    // Optimistically update local list for smooth UX.
+    setViewList(reorderList);
+    setIsReordering(true);
+
+    // dispatch(reorderPlaylistAndSync(reordered));
+    // Prepare payload for backend: [{ playlistItemId, position }]
+    const playlistOrder = reorderList.map((song, index) => ({
+      playlistItemId: song.playlistItemId,
+      position: index + 1,
+    }));
+
+    try {
+      await dispatch(reorderPlaylistAndSync(playlistOrder).unwrap?.());
+    } catch (error) {
+    } finally {
+      setIsReordering(false);
+    }
   };
 
   return (
@@ -44,13 +79,13 @@ const CurrentPlaylist = ({
           <Droppable droppableId="playlist">
             {(provided) => (
               <List {...provided.droppableProps} ref={provided.innerRef}>
-                {currentPlaylist?.length > 0 ? (
-                  currentPlaylist.map((song, index) => (
+                {viewList?.length > 0 ? (
+                  viewList.map((song, index) => (
                     <Draggable
                       key={song.playlistItemId}
                       draggableId={String(song.playlistItemId)}
                       index={index}
-                      isDragDisabled={!canDo(user?.role, "reorderPlaylist")}
+                      isDragDisabled={!canReorder}
                     >
                       {(provided, snapshot) => (
                         <ListItem
@@ -79,10 +114,9 @@ const CurrentPlaylist = ({
                                 <IconButton
                                   edge="end"
                                   onClick={() => onRemove(song.playlistItemId)}
+                                  disabled={!canRemove}
                                 >
-                                  {canDo(user?.role, "removeFromList") && (
-                                    <DeleteIcon />
-                                  )}
+                                  <DeleteIcon />
                                 </IconButton>
                               </Tooltip>
                             ) : null
@@ -94,7 +128,23 @@ const CurrentPlaylist = ({
                                 ? `${index + 1}. ${song.title}`
                                 : song.title
                             }
-                            secondary={song.artist || "Unknown Artist"}
+                            secondary={
+                              song.artist ? (
+                                song.artist
+                              ) : (
+                                <Typography
+                                  component="span"
+                                  sx={{ opacity: 0 }}
+                                >
+                                  &nbsp;
+                                </Typography>
+                              )
+                            }
+                            slotProps={{
+                              secondary: {
+                                sx: { display: "block", minHeight: 20 },
+                              },
+                            }}
                           />
                         </ListItem>
                       )}
