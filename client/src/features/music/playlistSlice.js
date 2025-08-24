@@ -109,7 +109,6 @@ const playlistSlice = createSlice({
         state.status = "loading";
       })
       .addCase(fetchPlaylist.fulfilled, (state, action) => {
-        console.log("🎯 fetchPlaylist response:", action.payload);
         const { playlist, player } = action.payload || {};
 
         if (Array.isArray(playlist)) {

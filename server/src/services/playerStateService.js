@@ -4,6 +4,7 @@ dotenv.config();
 import { getPlayerStateFromDB } from "../controllers/playerController.js";
 import { query } from "./postgresService.js";
 import { SOCKET_EVENTS } from "../constans/socketEvent.js";
+import { buildPlayableUrl } from "./BuildPlayableUrl.js";
 
 let io = null; // initialize this form server.js
 
@@ -50,9 +51,7 @@ export async function getLatestStateAndBroadcast(ioInstance = io) {
 
     const playlist = result.rows.map((row) => ({
       ...row,
-      url: row.url.startsWith("https://")
-        ? row.url
-        : `http://localhost:3001/uploads/${row.url}`,
+      url: buildPlayableUrl(row.url),
     }));
 
     const fullState = {

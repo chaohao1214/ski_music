@@ -65,7 +65,6 @@ async function ensurePlayerStateExists() {
       "INSERT INTO player_state (status, current_song_id) VALUES ($1, $2)",
       ["stopped", null]
     );
-    console.log("✅ Initialized player_state row.");
   }
 }
 

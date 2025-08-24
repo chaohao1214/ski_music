@@ -45,7 +45,6 @@ const PlayerPage = () => {
   }, [dispatch]);
 
   console.log("nowPlaying", nowPlaying);
-  console.log("currentPlaylist", currentPlaylist);
 
   usePlayerSocket(dispatch, audioRef, audioUnlocked, nowPlaying);
 
