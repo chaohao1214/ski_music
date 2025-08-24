@@ -11,7 +11,6 @@ export function usePlayerSocket(dispatch, audioRef, audioUnlocked, nowPlaying) {
 
     // Handle playlist state updates
     const handlePlaylistUpdate = (newState) => {
-      console.log("Player Client: Received playlist:update", newState);
       dispatch(updatePlayerAndPlaylist(newState));
     };
 

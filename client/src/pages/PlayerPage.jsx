@@ -44,8 +44,6 @@ const PlayerPage = () => {
     dispatch(fetchPlaylist());
   }, [dispatch]);
 
-  console.log("nowPlaying", nowPlaying);
-
   usePlayerSocket(dispatch, audioRef, audioUnlocked, nowPlaying);
 
   // Unlock audio via user interaction
@@ -95,10 +93,6 @@ const PlayerPage = () => {
         audio.pause(); // pause immediately; playback is now "unlocked"
         audio.muted = false;
         setAudioUnlocked(true);
-        console.log("[unlock] success", {
-          currentSrc: audio.currentSrc,
-          rs: audio.readyState,
-        });
         window.removeEventListener("pointerdown", onUnlock);
       } catch (err) {
         console.warn("[unlock] failed", err?.name || err, {
