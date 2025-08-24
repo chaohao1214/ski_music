@@ -50,33 +50,71 @@ const PlayerPage = () => {
 
   // Unlock audio via user interaction
   useEffect(() => {
-    if (audioUnlocked) return;
+    // install only when we actually have a playable URL and not unlocked yet
+    if (audioUnlocked || !nowPlaying?.url) return;
 
-    const unlockAudio = () => {
-      const audio = audioRef.current?.audio?.current;
+    const audio = audioRef.current?.audio?.current;
+    if (!audio) return;
 
-      if (!audio || !nowPlaying?.url) return;
+    // Ask the element to finalize resource selection (helps reach canplay sooner)
+    try {
+      audio.load?.();
+    } catch {}
 
-      audio.muted = true;
-      audio.src = nowPlaying.url;
-      audio
-        .play()
-        .then(() => {
-          audio.pause();
-          audio.muted = false;
-          setAudioUnlocked(true);
-          window.removeEventListener("click", unlockAudio);
-        })
-        .catch((err) => {
-          console.warn("Unlock failed", err);
+    const onUnlock = async () => {
+      // Guard: the element must have a currentSrc bound
+      const currentSrc = audio.currentSrc || audio.src || "";
+      if (!currentSrc) {
+        console.warn("[unlock] skip: no currentSrc yet");
+        return;
+      }
+
+      // Wait until the element can actually play current data (>= HAVE_CURRENT_DATA)
+      if (audio.readyState < 2) {
+        await new Promise((resolve) => {
+          const onCanPlay = () => {
+            audio.removeEventListener("canplay", onCanPlay);
+            resolve();
+          };
+          audio.addEventListener("canplay", onCanPlay, { once: true });
         });
+      }
+
+      // Quick mime sanity
+      const canPlay =
+        audio.canPlayType("audio/mpeg") || audio.canPlayType("audio/mp3");
+      if (!canPlay) {
+        console.warn("[unlock] browser reports unsupported mime");
+        return;
+      }
+
+      try {
+        // Do NOT override el.src here; React controls it via props
+        audio.muted = true;
+        await audio.play(); // play under user gesture
+        audio.pause(); // pause immediately; playback is now "unlocked"
+        audio.muted = false;
+        setAudioUnlocked(true);
+        console.log("[unlock] success", {
+          currentSrc: audio.currentSrc,
+          rs: audio.readyState,
+        });
+        window.removeEventListener("pointerdown", onUnlock);
+      } catch (err) {
+        console.warn("[unlock] failed", err?.name || err, {
+          currentSrc: audio.currentSrc,
+          rs: audio.readyState,
+        });
+      }
     };
 
-    window.addEventListener("click", unlockAudio);
+    // Use pointerdown (fires earlier than click) and ensure single-fire
+    window.addEventListener("pointerdown", onUnlock, { once: true });
+
     return () => {
-      window.removeEventListener("click", unlockAudio);
+      window.removeEventListener("pointerdown", onUnlock);
     };
-  }, [audioUnlocked, nowPlaying?.id]);
+  }, [audioUnlocked, nowPlaying?.url]);
 
   const handleNextSong = () => {
     if (!currentPlaylist || currentPlaylist.length === 0) return;
@@ -109,7 +147,7 @@ const PlayerPage = () => {
       <BackButton />
 
       <Box sx={{ width: "100%", maxWidth: "1400px" }}>
-        {!audioUnlocked && (
+        {!audioUnlocked && nowPlaying?.url && (
           <Typography
             variant="body2"
             color="warning.main"
@@ -160,10 +198,10 @@ const PlayerPage = () => {
             </Typography>
 
             <AudioPlayer
+              key={nowPlaying?.id || "empty"}
               ref={audioRef}
               src={nowPlaying?.url || ""}
-              // only happens from home page to player, need audioUnlocked
-              autoPlay={audioUnlocked && playerState?.status === "playing"}
+              autoPlay={audioUnlocked && playerState?.status === "playing"} // only after unlock
               showSkipControls={canControl}
               showJumpControls={false}
               onPlay={() => console.log("Playing")}
