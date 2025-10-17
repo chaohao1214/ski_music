@@ -11,6 +11,7 @@ import { sendPlayerCommand } from "../features/music/playerSlice";
 import {
   fetchPlaylist,
   removeSongFromPlaylist,
+  reorderPlaylistAndSync,
 } from "../features/music/playlistSlice";
 import { useNavigate } from "react-router-dom";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
@@ -36,6 +37,9 @@ const RemotePage = () => {
     () => canDo(user?.role, "controlPlayback"),
     [user?.role]
   );
+
+  const canReorder = canDo(user?.role, "reorderPlaylist");
+  const canRemove = canDo(user?.role, "removeFromList");
   useEffect(() => {
     socket.connect();
 
@@ -195,8 +199,13 @@ const RemotePage = () => {
           <CurrentPlaylist
             currentPlaylist={currentPlaylist}
             nowPlayingId={playerState.currentSongId}
+            canReorder={canReorder}
+            canRemove={canRemove}
             onRemove={(playlistItemId) =>
               dispatch(removeSongFromPlaylist(playlistItemId))
+            }
+            onReorder={(playlistOrder) =>
+              dispatch(reorderPlaylistAndSync(playlistOrder))
             }
           />
         </Box>

@@ -6,7 +6,7 @@ const BackButton = ({ to = "/", label = "Home", sx = {} }) => {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ position: "absolute", top: 16, left: 16 }}>
+    <Box sx={{ position: "absolute", top: 2, left: 10 }}>
       <Button
         startIcon={<ArrowBackIcon />}
         onClick={() => navigate(to)}

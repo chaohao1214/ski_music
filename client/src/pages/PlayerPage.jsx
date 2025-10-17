@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchPlaylist,
+  reorderPlaylistAndSync,
   updatePlaylistOrder,
 } from "../features/music/playlistSlice";
 import AudioPlayer from "react-h5-audio-player";
@@ -39,7 +40,8 @@ const PlayerPage = () => {
 
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   const canControl = canDo(user?.role, "controlPlayback");
-
+  const canReorder = canDo(user?.role, "reorderPlaylist");
+  const canRemove = canDo(user?.role, "removeFromList");
   useEffect(() => {
     dispatch(fetchPlaylist());
   }, [dispatch]);
@@ -139,7 +141,6 @@ const PlayerPage = () => {
       }}
     >
       <BackButton />
-
       <Box sx={{ width: "100%", maxWidth: "1400px" }}>
         {!audioUnlocked && nowPlaying?.url && (
           <Typography
@@ -244,9 +245,11 @@ const PlayerPage = () => {
             <CurrentPlaylist
               currentPlaylist={currentPlaylist}
               nowPlayingId={playerState.currentSongId}
-              onReorder={(newOrder) => {
-                dispatch(updatePlaylistOrder(newOrder));
-              }}
+              canReorder={canReorder}
+              canRemove={canRemove}
+              onReorder={(playlistOrder) =>
+                dispatch(reorderPlaylistAndSync(playlistOrder))
+              }
             />
           </Box>
         </Box>

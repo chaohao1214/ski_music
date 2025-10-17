@@ -11,14 +11,16 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import PropTypes from "prop-types";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { useDispatch, useSelector } from "react-redux";
-import { reorderPlaylistAndSync } from "../features/music/playlistSlice";
+import { useSelector } from "react-redux";
 import { canDo } from "../utils/permissions";
 
 const CurrentPlaylist = ({
   currentPlaylist,
   nowPlayingId,
   onRemove,
+  onReorder,
+  canReorder = false,
+  canRemove = false,
   showDelete = true,
   showIndex = false,
 }) => {
@@ -26,17 +28,6 @@ const CurrentPlaylist = ({
   const [viewList, setViewList] = useState(currentPlaylist || []);
   const [isReordering, setIsReordering] = useState(false);
 
-  const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
-
-  const canReorder = useMemo(
-    () => canDo(user?.role, "reorderPlaylist"),
-    [user?.role]
-  );
-  const canRemove = useMemo(
-    () => canDo(user?.role, "removeFromList"),
-    [user?.role]
-  );
   // 2) Sync local view list from global playlist when we are not in a reorder cycle.
   useEffect(() => {
     if (!isReordering) setViewList(currentPlaylist || []);
@@ -62,7 +53,7 @@ const CurrentPlaylist = ({
     }));
 
     try {
-      await dispatch(reorderPlaylistAndSync(playlistOrder).unwrap?.());
+      await onReorder?.(playlistOrder);
     } catch (error) {
     } finally {
       setIsReordering(false);
